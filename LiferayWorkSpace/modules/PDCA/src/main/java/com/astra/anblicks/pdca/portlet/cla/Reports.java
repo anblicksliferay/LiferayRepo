@@ -77,54 +77,38 @@ public class Reports extends MVCPortlet {
 	private static Log logger = LogFactoryUtil.getLog(Reports.class.getName());
 	
 	
+	
+	/** 
+	 * Ajax Method From Jsp
+	 * To Return Back the JsonString of Downloaded Url and Relevant Report Data to Jsp
+	 * 
+	 */
 	public void serveResource(ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 			throws IOException, PortletException {
 		String reportId = ParamUtil.getString(resourceRequest, "reportId");
 		String periodId = ParamUtil.getString(resourceRequest, "periodId");
 		String year = ParamUtil.getString(resourceRequest, "year");
 		
-		String reportDownloadUrl = getReportUrl(Integer.parseInt(reportId),Long.parseLong(periodId),Long.parseLong(year),resourceRequest,resourceResponse);
+		String reportDownloadUrl = getFile(Integer.parseInt(reportId),Long.parseLong(periodId),Long.parseLong(year),resourceRequest,resourceResponse);
         
         logger.info("Report : "+reportId+" Period :"+periodId+" Year : "+year);
         
         logger.info("reportDownloadUrl :"+reportDownloadUrl);
 	}
-
-
-	private String getReportUrl(int reportId, long periodId, long year, ResourceRequest resourceRequest, ResourceResponse resourceResponse) {
-		
-		switch (reportId) {
-		case 1:
-			try {
-				getFile(reportId,periodId,resourceRequest,resourceResponse);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			break;
-		case 2:
-			break;
-		case 3:
-			break;
-		case 4:
-			break;
-		case 5:
-			break;
-		default:
-			throw new IllegalArgumentException("Invaild ReportId : "+ reportId);
-		}
-		
-		return "";
-		
-	}
+	
+	
+	
 	
 	
 	/**
 	 * Method is to get the relevant file from Document & Media Library to generate relevant Report
+	 * @param year 
 	 * @param reportId,periodId,resourceRequest,resourceResponse
+	 * @return Json String of Download Url and Report Data Object
 	 * @throws FileNotFoundException,IOException
 	 *
 	 */
-	private void getFile(int reportId,long periodId,ResourceRequest resourceRequest, ResourceResponse resourceResponse)
+	private String getFile(int reportId,long periodId,long year, ResourceRequest resourceRequest, ResourceResponse resourceResponse)
 			throws FileNotFoundException, IOException {
 		try {
 			ThemeDisplay themeDisplay = (ThemeDisplay) resourceRequest.getAttribute(WebKeys.THEME_DISPLAY);
@@ -142,7 +126,7 @@ public class Reports extends MVCPortlet {
 				FileEntry fileEntry = DLAppServiceUtil.getFileEntry(repositoryId, folder.getFolderId(),
 						PDCAPortletKeys.AstraSampleExcelForTPBreakDown);
 				File file = DLFileEntryLocalServiceUtil.getFile(fileEntry.getFileEntryId(), "", true);
-				reportForTPBreakdown(themeDisplay,resourceRequest, rootfolder, fileEntry, file,periodId);
+				reportForTPBreakdown(themeDisplay,resourceRequest, rootfolder, fileEntry, file,periodId,year);
 				break;
 			case 2:
 				break;
@@ -158,14 +142,23 @@ public class Reports extends MVCPortlet {
 			}
 		} catch (Exception e) {
 		}
+		
+		return "";
 
 	}
 	
 	
 	
 	
+	/**
+	 * Method for Implementation of Report For TPBreakDown
+	 * @param themeDisplay,resourceRequest,rootfolder,fileEntry,file,periodId,year
+	 * @throws PortalException
+	 * @return Json String of Download Url and Relevent Report Json Data 
+	 * 
+	 */
 	private void reportForTPBreakdown(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
-			FileEntry fileEntry, File file, long periodId) throws PortalException {
+			FileEntry fileEntry, File file, long periodId, long year) throws PortalException {
 		long timeNow = System.currentTimeMillis();
 		int rowIndex = 1;
 		int starIndex = 4;
@@ -174,6 +167,7 @@ public class Reports extends MVCPortlet {
 		String description = PDCAPortletKeys.TPBreakDown_Desc;
 		String url = null;
 		
+		//TODO Querying the TradingProfit value per year also
 		DynamicQuery dynamicQueryForTradeProfit = tradingProfitLocalServiceUtil.dynamicQuery();
 		dynamicQueryForTradeProfit.add(PropertyFactoryUtil.forName("periodId").eq(periodId));
 		List<tradingProfit> TradeProfitList = cla_kpiLocalServiceUtil.dynamicQuery(dynamicQueryForTradeProfit);
@@ -181,8 +175,10 @@ public class Reports extends MVCPortlet {
 		XSSFWorkbook workbook = new XSSFWorkbook();
 		XSSFSheet sheet = workbook.createSheet("Tp_BreakDown");
 		
-	/*	for( tradingProfit tpb : TradeProfitList) {
-			String TradingProfitjsonDataArray = getTradingProfitFormulaValue(tpb);
+		//TODO implement the Lambda Expression forEach loop
+		
+		for( tradingProfit tpb : TradeProfitList) {
+			String TradingProfitjsonDataArray = getTradingProfitValueAndTotalOneOff(tpb);
 			JSONObject Tdp_Converted_Json = JSONFactoryUtil.createJSONObject(TradingProfitjsonDataArray);
 			Row row = sheet.createRow(starIndex++);
 			row.createCell(0).setCellValue(rowIndex);
@@ -196,7 +192,7 @@ public class Reports extends MVCPortlet {
 			row.createCell(8).setCellValue(Tdp_Converted_Json.getDouble("Total"));
 			row.createCell(9).setCellValue(Tdp_Converted_Json.getDouble("TradingProfit"));	
 			rowIndex++;
-		} */
+		} 
 		
 		  FileOutputStream outputStream;
 		  try {
@@ -204,7 +200,6 @@ public class Reports extends MVCPortlet {
 			workbook.write(outputStream);
 			workbook.close();
 		} catch (IOException e1 ) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		  ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
@@ -214,8 +209,16 @@ public class Reports extends MVCPortlet {
 	}
 		
 
-
-	private String getTradingProfitFormulaValue(tradingProfit tpb) {
+	
+	
+	
+	
+	/**
+	 * Calculating TradingProfitValue and Total OneOff based on TradingProfit Object
+	 * @param TradingProfit Object
+	 * @return Json String of TP value and Total OneOff
+	 */
+	private String getTradingProfitValueAndTotalOneOff(tradingProfit tpb) {
 		double total = tpb.getPpeDispos() + tpb.getRevalutionOnPropertyInvestment() + tpb.getInvestment() + tpb.getTaxExpense() + tpb.getImpairmentOnAsset();		                                   
 		double tradingProfit = tpb.getNpat() - tpb.getNetForex() - (total);
 		JSONObject Tp_Breakdown_Json = JSONFactoryUtil.createJSONObject();
@@ -225,6 +228,9 @@ public class Reports extends MVCPortlet {
 	}
 
 
+	
+	
+	
 	/**
 	 * Method for Create a Folder in Document & Media Library...
 	 * @param resourceRequest
@@ -248,6 +254,8 @@ public class Reports extends MVCPortlet {
 	}
 	
 	
+	
+	
 	/**
 	 * Method for whether the Folder Would Created or Not in Document & Media Library..
 	 * @param themeDisplay
@@ -266,6 +274,7 @@ public class Reports extends MVCPortlet {
 		}
 		return folderExist;
 	}
+	
 	
 	
 	/**

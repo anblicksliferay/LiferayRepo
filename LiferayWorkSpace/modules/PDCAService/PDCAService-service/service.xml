@@ -36,6 +36,7 @@
 	   <column name="tradingProfitId" primary="true" type="long" />
 	   <column name="periodId" type="long" />
 	   <column name="companyId" type="long" />
+	   <column name="year" type="long" />
 	   <column name="npat" type="double" />
 	   <column name="netForex" type="double" />
 	   <column name="ppeDispos" type="double" />
@@ -43,6 +44,7 @@
 	   <column name="investment" type="double" />
 	   <column name="taxExpense" type="double" />
 	   <column name="impairmentOnAsset" type="double" />
+	   <column name="others" type="double" />
 	</entity>
 	
 	<!-- End of LookUp Tables -->
