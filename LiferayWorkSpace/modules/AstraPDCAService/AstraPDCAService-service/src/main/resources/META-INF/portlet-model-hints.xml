@@ -52,6 +52,7 @@
 		<field name="uuid" type="String" />
 		<field name="tradingProfitId" type="long" />
 		<field name="periodId" type="long" />
+		<field name="companyId" type="long" />
 		<field name="npat" type="double" />
 		<field name="netForex" type="double" />
 		<field name="ppeDispos" type="double" />

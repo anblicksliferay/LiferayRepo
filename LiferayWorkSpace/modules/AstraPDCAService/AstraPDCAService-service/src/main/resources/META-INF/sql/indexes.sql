@@ -11,7 +11,7 @@ create index IX_54F077D0 on astra_kpi (uuid_[$COLUMN_LENGTH:75$], companyId);
 
 create index IX_5873B27F on astra_period (uuid_[$COLUMN_LENGTH:75$]);
 
-create index IX_1447BDD7 on astra_tradingProfit (uuid_[$COLUMN_LENGTH:75$]);
+create index IX_C41C09F1 on astra_tradingProfit (uuid_[$COLUMN_LENGTH:75$], companyId);
 
 create index IX_126785A6 on astra_type (uuid_[$COLUMN_LENGTH:75$]);
 

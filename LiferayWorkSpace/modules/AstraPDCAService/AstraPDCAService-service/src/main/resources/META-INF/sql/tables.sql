@@ -55,6 +55,7 @@ create table astra_tradingProfit (
 	uuid_ VARCHAR(75) null,
 	tradingProfitId LONG not null primary key,
 	periodId LONG,
+	companyId LONG,
 	npat DOUBLE,
 	netForex DOUBLE,
 	ppeDispos DOUBLE,

@@ -69,6 +69,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 			{ "uuid_", Types.VARCHAR },
 			{ "tradingProfitId", Types.BIGINT },
 			{ "periodId", Types.BIGINT },
+			{ "companyId", Types.BIGINT },
 			{ "npat", Types.DOUBLE },
 			{ "netForex", Types.DOUBLE },
 			{ "ppeDispos", Types.DOUBLE },
@@ -83,6 +84,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("tradingProfitId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("periodId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("npat", Types.DOUBLE);
 		TABLE_COLUMNS_MAP.put("netForex", Types.DOUBLE);
 		TABLE_COLUMNS_MAP.put("ppeDispos", Types.DOUBLE);
@@ -92,7 +94,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		TABLE_COLUMNS_MAP.put("impairmentOnAsset", Types.DOUBLE);
 	}
 
-	public static final String TABLE_SQL_CREATE = "create table astra_tradingProfit (uuid_ VARCHAR(75) null,tradingProfitId LONG not null primary key,periodId LONG,npat DOUBLE,netForex DOUBLE,ppeDispos DOUBLE,revalutionOnPropertyInvestment DOUBLE,investment DOUBLE,taxExpense DOUBLE,impairmentOnAsset DOUBLE)";
+	public static final String TABLE_SQL_CREATE = "create table astra_tradingProfit (uuid_ VARCHAR(75) null,tradingProfitId LONG not null primary key,periodId LONG,companyId LONG,npat DOUBLE,netForex DOUBLE,ppeDispos DOUBLE,revalutionOnPropertyInvestment DOUBLE,investment DOUBLE,taxExpense DOUBLE,impairmentOnAsset DOUBLE)";
 	public static final String TABLE_SQL_DROP = "drop table astra_tradingProfit";
 	public static final String ORDER_BY_JPQL = " ORDER BY tradingProfit.tradingProfitId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY astra_tradingProfit.tradingProfitId ASC";
@@ -108,8 +110,9 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(com.astra.anblicks.pdca.service.util.ServiceProps.get(
 				"value.object.column.bitmask.enabled.com.astra.anblicks.pdca.model.tradingProfit"),
 			true);
-	public static final long UUID_COLUMN_BITMASK = 1L;
-	public static final long TRADINGPROFITID_COLUMN_BITMASK = 2L;
+	public static final long COMPANYID_COLUMN_BITMASK = 1L;
+	public static final long UUID_COLUMN_BITMASK = 2L;
+	public static final long TRADINGPROFITID_COLUMN_BITMASK = 4L;
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -127,6 +130,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		model.setUuid(soapModel.getUuid());
 		model.setTradingProfitId(soapModel.getTradingProfitId());
 		model.setPeriodId(soapModel.getPeriodId());
+		model.setCompanyId(soapModel.getCompanyId());
 		model.setNpat(soapModel.getNpat());
 		model.setNetForex(soapModel.getNetForex());
 		model.setPpeDispos(soapModel.getPpeDispos());
@@ -201,6 +205,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		attributes.put("uuid", getUuid());
 		attributes.put("tradingProfitId", getTradingProfitId());
 		attributes.put("periodId", getPeriodId());
+		attributes.put("companyId", getCompanyId());
 		attributes.put("npat", getNpat());
 		attributes.put("netForex", getNetForex());
 		attributes.put("ppeDispos", getPpeDispos());
@@ -234,6 +239,12 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 		if (periodId != null) {
 			setPeriodId(periodId);
+		}
+
+		Long companyId = (Long)attributes.get("companyId");
+
+		if (companyId != null) {
+			setCompanyId(companyId);
 		}
 
 		Double npat = (Double)attributes.get("npat");
@@ -328,6 +339,29 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 	@JSON
 	@Override
+	public long getCompanyId() {
+		return _companyId;
+	}
+
+	@Override
+	public void setCompanyId(long companyId) {
+		_columnBitmask |= COMPANYID_COLUMN_BITMASK;
+
+		if (!_setOriginalCompanyId) {
+			_setOriginalCompanyId = true;
+
+			_originalCompanyId = _companyId;
+		}
+
+		_companyId = companyId;
+	}
+
+	public long getOriginalCompanyId() {
+		return _originalCompanyId;
+	}
+
+	@JSON
+	@Override
 	public double getNpat() {
 		return _npat;
 	}
@@ -410,7 +444,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 	@Override
 	public ExpandoBridge getExpandoBridge() {
-		return ExpandoBridgeFactoryUtil.getExpandoBridge(0,
+		return ExpandoBridgeFactoryUtil.getExpandoBridge(getCompanyId(),
 			tradingProfit.class.getName(), getPrimaryKey());
 	}
 
@@ -438,6 +472,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		tradingProfitImpl.setUuid(getUuid());
 		tradingProfitImpl.setTradingProfitId(getTradingProfitId());
 		tradingProfitImpl.setPeriodId(getPeriodId());
+		tradingProfitImpl.setCompanyId(getCompanyId());
 		tradingProfitImpl.setNpat(getNpat());
 		tradingProfitImpl.setNetForex(getNetForex());
 		tradingProfitImpl.setPpeDispos(getPpeDispos());
@@ -509,6 +544,10 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 		tradingProfitModelImpl._originalUuid = tradingProfitModelImpl._uuid;
 
+		tradingProfitModelImpl._originalCompanyId = tradingProfitModelImpl._companyId;
+
+		tradingProfitModelImpl._setOriginalCompanyId = false;
+
 		tradingProfitModelImpl._columnBitmask = 0;
 	}
 
@@ -527,6 +566,8 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		tradingProfitCacheModel.tradingProfitId = getTradingProfitId();
 
 		tradingProfitCacheModel.periodId = getPeriodId();
+
+		tradingProfitCacheModel.companyId = getCompanyId();
 
 		tradingProfitCacheModel.npat = getNpat();
 
@@ -547,7 +588,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(21);
+		StringBundler sb = new StringBundler(23);
 
 		sb.append("{uuid=");
 		sb.append(getUuid());
@@ -555,6 +596,8 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		sb.append(getTradingProfitId());
 		sb.append(", periodId=");
 		sb.append(getPeriodId());
+		sb.append(", companyId=");
+		sb.append(getCompanyId());
 		sb.append(", npat=");
 		sb.append(getNpat());
 		sb.append(", netForex=");
@@ -576,7 +619,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(34);
+		StringBundler sb = new StringBundler(37);
 
 		sb.append("<model><model-name>");
 		sb.append("com.astra.anblicks.pdca.model.tradingProfit");
@@ -593,6 +636,10 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		sb.append(
 			"<column><column-name>periodId</column-name><column-value><![CDATA[");
 		sb.append(getPeriodId());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>companyId</column-name><column-value><![CDATA[");
+		sb.append(getCompanyId());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>npat</column-name><column-value><![CDATA[");
@@ -636,6 +683,9 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 	private String _originalUuid;
 	private long _tradingProfitId;
 	private long _periodId;
+	private long _companyId;
+	private long _originalCompanyId;
+	private boolean _setOriginalCompanyId;
 	private double _npat;
 	private double _netForex;
 	private double _ppeDispos;

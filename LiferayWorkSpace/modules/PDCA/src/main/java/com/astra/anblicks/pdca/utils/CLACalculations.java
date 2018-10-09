@@ -17,7 +17,7 @@ public class CLACalculations {
 		
 		kpi kpiObject = kpiLocalServiceUtil.getkpi(kpiId);
 		
-		double OL_FY = getTradingProfit(periodId);
+		double OL_FY = getTradingProfit(periodId,kpiObject.getCompanyId());
 		double OL_Achivement = 0.00;
 		double Cla_Point = 0.00;
 		
@@ -111,7 +111,8 @@ public class CLACalculations {
 	 * @return TradingProfit
 	 * @throws PortalException
 	 */
-	public static double getTradingProfit(long periodId) throws PortalException {
+	public static double getTradingProfit(long periodId,long companyId) throws PortalException {
+		//Querying TradingProfit Object Based on PeriodId and CompanyId
 		tradingProfit getTradingProfitObject = tradingProfitLocalServiceUtil.gettradingProfit(periodId);
 		
 		double tradingProfit = getTradingProfitObject.getNpat() - getTradingProfitObject.getNetForex()

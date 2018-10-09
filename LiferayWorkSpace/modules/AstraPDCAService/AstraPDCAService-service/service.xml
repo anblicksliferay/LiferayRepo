@@ -36,6 +36,7 @@
 	<entity local-service="true" name="tradingProfit" remote-service="true" uuid="true">
 	   <column name="tradingProfitId" primary="true" type="long" />
 	   <column name="periodId" type="long" />
+	   <column name="companyId" type="long" />
 	   <column name="npat" type="double" />
 	   <column name="netForex" type="double" />
 	   <column name="ppeDispos" type="double" />

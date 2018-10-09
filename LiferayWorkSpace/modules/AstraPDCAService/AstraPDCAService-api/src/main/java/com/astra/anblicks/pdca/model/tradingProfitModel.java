@@ -21,6 +21,7 @@ import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.service.ServiceContext;
 
 import java.io.Serializable;
@@ -39,7 +40,8 @@ import java.io.Serializable;
  * @generated
  */
 @ProviderType
-public interface tradingProfitModel extends BaseModel<tradingProfit> {
+public interface tradingProfitModel extends BaseModel<tradingProfit>,
+	ShardedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -102,6 +104,22 @@ public interface tradingProfitModel extends BaseModel<tradingProfit> {
 	 * @param periodId the period ID of this trading profit
 	 */
 	public void setPeriodId(long periodId);
+
+	/**
+	 * Returns the company ID of this trading profit.
+	 *
+	 * @return the company ID of this trading profit
+	 */
+	@Override
+	public long getCompanyId();
+
+	/**
+	 * Sets the company ID of this trading profit.
+	 *
+	 * @param companyId the company ID of this trading profit
+	 */
+	@Override
+	public void setCompanyId(long companyId);
 
 	/**
 	 * Returns the npat of this trading profit.
