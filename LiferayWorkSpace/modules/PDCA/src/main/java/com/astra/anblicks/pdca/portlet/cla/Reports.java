@@ -72,6 +72,12 @@ import com.liferay.portal.kernel.util.WebKeys;
     },
     service = Portlet.class
 )
+
+/**
+ * 
+ * @author N.Kranthi Kumar
+ *
+ */
 public class Reports extends MVCPortlet {
 
 	private static Log logger = LogFactoryUtil.getLog(Reports.class.getName());

@@ -37,6 +37,7 @@ public class tradingProfitSoap implements Serializable {
 		soapModel.setTradingProfitId(model.getTradingProfitId());
 		soapModel.setPeriodId(model.getPeriodId());
 		soapModel.setCompanyId(model.getCompanyId());
+		soapModel.setYear(model.getYear());
 		soapModel.setNpat(model.getNpat());
 		soapModel.setNetForex(model.getNetForex());
 		soapModel.setPpeDispos(model.getPpeDispos());
@@ -44,6 +45,7 @@ public class tradingProfitSoap implements Serializable {
 		soapModel.setInvestment(model.getInvestment());
 		soapModel.setTaxExpense(model.getTaxExpense());
 		soapModel.setImpairmentOnAsset(model.getImpairmentOnAsset());
+		soapModel.setOthers(model.getOthers());
 
 		return soapModel;
 	}
@@ -128,6 +130,14 @@ public class tradingProfitSoap implements Serializable {
 		_companyId = companyId;
 	}
 
+	public long getYear() {
+		return _year;
+	}
+
+	public void setYear(long year) {
+		_year = year;
+	}
+
 	public double getNpat() {
 		return _npat;
 	}
@@ -185,10 +195,19 @@ public class tradingProfitSoap implements Serializable {
 		_impairmentOnAsset = impairmentOnAsset;
 	}
 
+	public double getOthers() {
+		return _others;
+	}
+
+	public void setOthers(double others) {
+		_others = others;
+	}
+
 	private String _uuid;
 	private long _tradingProfitId;
 	private long _periodId;
 	private long _companyId;
+	private long _year;
 	private double _npat;
 	private double _netForex;
 	private double _ppeDispos;
@@ -196,4 +215,5 @@ public class tradingProfitSoap implements Serializable {
 	private double _investment;
 	private double _taxExpense;
 	private double _impairmentOnAsset;
+	private double _others;
 }

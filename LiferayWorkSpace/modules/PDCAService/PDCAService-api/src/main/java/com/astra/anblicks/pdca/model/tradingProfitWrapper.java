@@ -61,6 +61,7 @@ public class tradingProfitWrapper implements tradingProfit,
 		attributes.put("tradingProfitId", getTradingProfitId());
 		attributes.put("periodId", getPeriodId());
 		attributes.put("companyId", getCompanyId());
+		attributes.put("year", getYear());
 		attributes.put("npat", getNpat());
 		attributes.put("netForex", getNetForex());
 		attributes.put("ppeDispos", getPpeDispos());
@@ -69,6 +70,7 @@ public class tradingProfitWrapper implements tradingProfit,
 		attributes.put("investment", getInvestment());
 		attributes.put("taxExpense", getTaxExpense());
 		attributes.put("impairmentOnAsset", getImpairmentOnAsset());
+		attributes.put("others", getOthers());
 
 		return attributes;
 	}
@@ -97,6 +99,12 @@ public class tradingProfitWrapper implements tradingProfit,
 
 		if (companyId != null) {
 			setCompanyId(companyId);
+		}
+
+		Long year = (Long)attributes.get("year");
+
+		if (year != null) {
+			setYear(year);
 		}
 
 		Double npat = (Double)attributes.get("npat");
@@ -140,6 +148,12 @@ public class tradingProfitWrapper implements tradingProfit,
 
 		if (impairmentOnAsset != null) {
 			setImpairmentOnAsset(impairmentOnAsset);
+		}
+
+		Double others = (Double)attributes.get("others");
+
+		if (others != null) {
+			setOthers(others);
 		}
 	}
 
@@ -216,6 +230,16 @@ public class tradingProfitWrapper implements tradingProfit,
 	@Override
 	public double getNpat() {
 		return _tradingProfit.getNpat();
+	}
+
+	/**
+	* Returns the others of this trading profit.
+	*
+	* @return the others of this trading profit
+	*/
+	@Override
+	public double getOthers() {
+		return _tradingProfit.getOthers();
 	}
 
 	/**
@@ -329,6 +353,16 @@ public class tradingProfitWrapper implements tradingProfit,
 		return _tradingProfit.getTradingProfitId();
 	}
 
+	/**
+	* Returns the year of this trading profit.
+	*
+	* @return the year of this trading profit
+	*/
+	@Override
+	public long getYear() {
+		return _tradingProfit.getYear();
+	}
+
 	@Override
 	public void persist() {
 		_tradingProfit.persist();
@@ -411,6 +445,16 @@ public class tradingProfitWrapper implements tradingProfit,
 	}
 
 	/**
+	* Sets the others of this trading profit.
+	*
+	* @param others the others of this trading profit
+	*/
+	@Override
+	public void setOthers(double others) {
+		_tradingProfit.setOthers(others);
+	}
+
+	/**
 	* Sets the period ID of this trading profit.
 	*
 	* @param periodId the period ID of this trading profit
@@ -484,6 +528,16 @@ public class tradingProfitWrapper implements tradingProfit,
 	@Override
 	public void setUuid(java.lang.String uuid) {
 		_tradingProfit.setUuid(uuid);
+	}
+
+	/**
+	* Sets the year of this trading profit.
+	*
+	* @param year the year of this trading profit
+	*/
+	@Override
+	public void setYear(long year) {
+		_tradingProfit.setYear(year);
 	}
 
 	@Override

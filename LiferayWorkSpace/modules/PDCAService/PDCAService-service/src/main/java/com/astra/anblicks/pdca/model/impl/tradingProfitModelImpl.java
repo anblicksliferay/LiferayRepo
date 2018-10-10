@@ -70,13 +70,15 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 			{ "tradingProfitId", Types.BIGINT },
 			{ "periodId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
+			{ "year", Types.BIGINT },
 			{ "npat", Types.DOUBLE },
 			{ "netForex", Types.DOUBLE },
 			{ "ppeDispos", Types.DOUBLE },
 			{ "revalutionOnPropertyInvestment", Types.DOUBLE },
 			{ "investment", Types.DOUBLE },
 			{ "taxExpense", Types.DOUBLE },
-			{ "impairmentOnAsset", Types.DOUBLE }
+			{ "impairmentOnAsset", Types.DOUBLE },
+			{ "others", Types.DOUBLE }
 		};
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP = new HashMap<String, Integer>();
 
@@ -85,6 +87,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		TABLE_COLUMNS_MAP.put("tradingProfitId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("periodId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("year", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("npat", Types.DOUBLE);
 		TABLE_COLUMNS_MAP.put("netForex", Types.DOUBLE);
 		TABLE_COLUMNS_MAP.put("ppeDispos", Types.DOUBLE);
@@ -92,9 +95,10 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		TABLE_COLUMNS_MAP.put("investment", Types.DOUBLE);
 		TABLE_COLUMNS_MAP.put("taxExpense", Types.DOUBLE);
 		TABLE_COLUMNS_MAP.put("impairmentOnAsset", Types.DOUBLE);
+		TABLE_COLUMNS_MAP.put("others", Types.DOUBLE);
 	}
 
-	public static final String TABLE_SQL_CREATE = "create table pdca_tradingProfit (uuid_ VARCHAR(75) null,tradingProfitId LONG not null primary key,periodId LONG,companyId LONG,npat DOUBLE,netForex DOUBLE,ppeDispos DOUBLE,revalutionOnPropertyInvestment DOUBLE,investment DOUBLE,taxExpense DOUBLE,impairmentOnAsset DOUBLE)";
+	public static final String TABLE_SQL_CREATE = "create table pdca_tradingProfit (uuid_ VARCHAR(75) null,tradingProfitId LONG not null primary key,periodId LONG,companyId LONG,year LONG,npat DOUBLE,netForex DOUBLE,ppeDispos DOUBLE,revalutionOnPropertyInvestment DOUBLE,investment DOUBLE,taxExpense DOUBLE,impairmentOnAsset DOUBLE,others DOUBLE)";
 	public static final String TABLE_SQL_DROP = "drop table pdca_tradingProfit";
 	public static final String ORDER_BY_JPQL = " ORDER BY tradingProfit.tradingProfitId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY pdca_tradingProfit.tradingProfitId ASC";
@@ -131,6 +135,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		model.setTradingProfitId(soapModel.getTradingProfitId());
 		model.setPeriodId(soapModel.getPeriodId());
 		model.setCompanyId(soapModel.getCompanyId());
+		model.setYear(soapModel.getYear());
 		model.setNpat(soapModel.getNpat());
 		model.setNetForex(soapModel.getNetForex());
 		model.setPpeDispos(soapModel.getPpeDispos());
@@ -138,6 +143,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		model.setInvestment(soapModel.getInvestment());
 		model.setTaxExpense(soapModel.getTaxExpense());
 		model.setImpairmentOnAsset(soapModel.getImpairmentOnAsset());
+		model.setOthers(soapModel.getOthers());
 
 		return model;
 	}
@@ -206,6 +212,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		attributes.put("tradingProfitId", getTradingProfitId());
 		attributes.put("periodId", getPeriodId());
 		attributes.put("companyId", getCompanyId());
+		attributes.put("year", getYear());
 		attributes.put("npat", getNpat());
 		attributes.put("netForex", getNetForex());
 		attributes.put("ppeDispos", getPpeDispos());
@@ -214,6 +221,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		attributes.put("investment", getInvestment());
 		attributes.put("taxExpense", getTaxExpense());
 		attributes.put("impairmentOnAsset", getImpairmentOnAsset());
+		attributes.put("others", getOthers());
 
 		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
 		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
@@ -245,6 +253,12 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 		if (companyId != null) {
 			setCompanyId(companyId);
+		}
+
+		Long year = (Long)attributes.get("year");
+
+		if (year != null) {
+			setYear(year);
 		}
 
 		Double npat = (Double)attributes.get("npat");
@@ -288,6 +302,12 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 		if (impairmentOnAsset != null) {
 			setImpairmentOnAsset(impairmentOnAsset);
+		}
+
+		Double others = (Double)attributes.get("others");
+
+		if (others != null) {
+			setOthers(others);
 		}
 	}
 
@@ -358,6 +378,17 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 	public long getOriginalCompanyId() {
 		return _originalCompanyId;
+	}
+
+	@JSON
+	@Override
+	public long getYear() {
+		return _year;
+	}
+
+	@Override
+	public void setYear(long year) {
+		_year = year;
 	}
 
 	@JSON
@@ -438,6 +469,17 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		_impairmentOnAsset = impairmentOnAsset;
 	}
 
+	@JSON
+	@Override
+	public double getOthers() {
+		return _others;
+	}
+
+	@Override
+	public void setOthers(double others) {
+		_others = others;
+	}
+
 	public long getColumnBitmask() {
 		return _columnBitmask;
 	}
@@ -473,6 +515,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		tradingProfitImpl.setTradingProfitId(getTradingProfitId());
 		tradingProfitImpl.setPeriodId(getPeriodId());
 		tradingProfitImpl.setCompanyId(getCompanyId());
+		tradingProfitImpl.setYear(getYear());
 		tradingProfitImpl.setNpat(getNpat());
 		tradingProfitImpl.setNetForex(getNetForex());
 		tradingProfitImpl.setPpeDispos(getPpeDispos());
@@ -480,6 +523,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		tradingProfitImpl.setInvestment(getInvestment());
 		tradingProfitImpl.setTaxExpense(getTaxExpense());
 		tradingProfitImpl.setImpairmentOnAsset(getImpairmentOnAsset());
+		tradingProfitImpl.setOthers(getOthers());
 
 		tradingProfitImpl.resetOriginalValues();
 
@@ -569,6 +613,8 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 		tradingProfitCacheModel.companyId = getCompanyId();
 
+		tradingProfitCacheModel.year = getYear();
+
 		tradingProfitCacheModel.npat = getNpat();
 
 		tradingProfitCacheModel.netForex = getNetForex();
@@ -583,12 +629,14 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 		tradingProfitCacheModel.impairmentOnAsset = getImpairmentOnAsset();
 
+		tradingProfitCacheModel.others = getOthers();
+
 		return tradingProfitCacheModel;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
+		StringBundler sb = new StringBundler(27);
 
 		sb.append("{uuid=");
 		sb.append(getUuid());
@@ -598,6 +646,8 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		sb.append(getPeriodId());
 		sb.append(", companyId=");
 		sb.append(getCompanyId());
+		sb.append(", year=");
+		sb.append(getYear());
 		sb.append(", npat=");
 		sb.append(getNpat());
 		sb.append(", netForex=");
@@ -612,6 +662,8 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		sb.append(getTaxExpense());
 		sb.append(", impairmentOnAsset=");
 		sb.append(getImpairmentOnAsset());
+		sb.append(", others=");
+		sb.append(getOthers());
 		sb.append("}");
 
 		return sb.toString();
@@ -619,7 +671,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(37);
+		StringBundler sb = new StringBundler(43);
 
 		sb.append("<model><model-name>");
 		sb.append("com.astra.anblicks.pdca.model.tradingProfit");
@@ -640,6 +692,10 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 		sb.append(
 			"<column><column-name>companyId</column-name><column-value><![CDATA[");
 		sb.append(getCompanyId());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>year</column-name><column-value><![CDATA[");
+		sb.append(getYear());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>npat</column-name><column-value><![CDATA[");
@@ -669,6 +725,10 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 			"<column><column-name>impairmentOnAsset</column-name><column-value><![CDATA[");
 		sb.append(getImpairmentOnAsset());
 		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>others</column-name><column-value><![CDATA[");
+		sb.append(getOthers());
+		sb.append("]]></column-value></column>");
 
 		sb.append("</model>");
 
@@ -686,6 +746,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 	private long _companyId;
 	private long _originalCompanyId;
 	private boolean _setOriginalCompanyId;
+	private long _year;
 	private double _npat;
 	private double _netForex;
 	private double _ppeDispos;
@@ -693,6 +754,7 @@ public class tradingProfitModelImpl extends BaseModelImpl<tradingProfit>
 	private double _investment;
 	private double _taxExpense;
 	private double _impairmentOnAsset;
+	private double _others;
 	private long _columnBitmask;
 	private tradingProfit _escapedModel;
 }

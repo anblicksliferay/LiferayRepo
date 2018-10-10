@@ -53,6 +53,7 @@
 		<field name="tradingProfitId" type="long" />
 		<field name="periodId" type="long" />
 		<field name="companyId" type="long" />
+		<field name="year" type="long" />
 		<field name="npat" type="double" />
 		<field name="netForex" type="double" />
 		<field name="ppeDispos" type="double" />
@@ -60,6 +61,7 @@
 		<field name="investment" type="double" />
 		<field name="taxExpense" type="double" />
 		<field name="impairmentOnAsset" type="double" />
+		<field name="others" type="double" />
 	</model>
 	<model name="com.astra.anblicks.pdca.model.type">
 		<field name="uuid" type="String" />

@@ -64,7 +64,7 @@ public class tradingProfitCacheModel implements CacheModel<tradingProfit>,
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
+		StringBundler sb = new StringBundler(27);
 
 		sb.append("{uuid=");
 		sb.append(uuid);
@@ -74,6 +74,8 @@ public class tradingProfitCacheModel implements CacheModel<tradingProfit>,
 		sb.append(periodId);
 		sb.append(", companyId=");
 		sb.append(companyId);
+		sb.append(", year=");
+		sb.append(year);
 		sb.append(", npat=");
 		sb.append(npat);
 		sb.append(", netForex=");
@@ -88,6 +90,8 @@ public class tradingProfitCacheModel implements CacheModel<tradingProfit>,
 		sb.append(taxExpense);
 		sb.append(", impairmentOnAsset=");
 		sb.append(impairmentOnAsset);
+		sb.append(", others=");
+		sb.append(others);
 		sb.append("}");
 
 		return sb.toString();
@@ -107,6 +111,7 @@ public class tradingProfitCacheModel implements CacheModel<tradingProfit>,
 		tradingProfitImpl.setTradingProfitId(tradingProfitId);
 		tradingProfitImpl.setPeriodId(periodId);
 		tradingProfitImpl.setCompanyId(companyId);
+		tradingProfitImpl.setYear(year);
 		tradingProfitImpl.setNpat(npat);
 		tradingProfitImpl.setNetForex(netForex);
 		tradingProfitImpl.setPpeDispos(ppeDispos);
@@ -114,6 +119,7 @@ public class tradingProfitCacheModel implements CacheModel<tradingProfit>,
 		tradingProfitImpl.setInvestment(investment);
 		tradingProfitImpl.setTaxExpense(taxExpense);
 		tradingProfitImpl.setImpairmentOnAsset(impairmentOnAsset);
+		tradingProfitImpl.setOthers(others);
 
 		tradingProfitImpl.resetOriginalValues();
 
@@ -130,6 +136,8 @@ public class tradingProfitCacheModel implements CacheModel<tradingProfit>,
 
 		companyId = objectInput.readLong();
 
+		year = objectInput.readLong();
+
 		npat = objectInput.readDouble();
 
 		netForex = objectInput.readDouble();
@@ -143,6 +151,8 @@ public class tradingProfitCacheModel implements CacheModel<tradingProfit>,
 		taxExpense = objectInput.readDouble();
 
 		impairmentOnAsset = objectInput.readDouble();
+
+		others = objectInput.readDouble();
 	}
 
 	@Override
@@ -161,6 +171,8 @@ public class tradingProfitCacheModel implements CacheModel<tradingProfit>,
 
 		objectOutput.writeLong(companyId);
 
+		objectOutput.writeLong(year);
+
 		objectOutput.writeDouble(npat);
 
 		objectOutput.writeDouble(netForex);
@@ -174,12 +186,15 @@ public class tradingProfitCacheModel implements CacheModel<tradingProfit>,
 		objectOutput.writeDouble(taxExpense);
 
 		objectOutput.writeDouble(impairmentOnAsset);
+
+		objectOutput.writeDouble(others);
 	}
 
 	public String uuid;
 	public long tradingProfitId;
 	public long periodId;
 	public long companyId;
+	public long year;
 	public double npat;
 	public double netForex;
 	public double ppeDispos;
@@ -187,4 +202,5 @@ public class tradingProfitCacheModel implements CacheModel<tradingProfit>,
 	public double investment;
 	public double taxExpense;
 	public double impairmentOnAsset;
+	public double others;
 }

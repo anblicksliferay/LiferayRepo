@@ -122,6 +122,20 @@ public interface tradingProfitModel extends BaseModel<tradingProfit>,
 	public void setCompanyId(long companyId);
 
 	/**
+	 * Returns the year of this trading profit.
+	 *
+	 * @return the year of this trading profit
+	 */
+	public long getYear();
+
+	/**
+	 * Sets the year of this trading profit.
+	 *
+	 * @param year the year of this trading profit
+	 */
+	public void setYear(long year);
+
+	/**
 	 * Returns the npat of this trading profit.
 	 *
 	 * @return the npat of this trading profit
@@ -219,6 +233,20 @@ public interface tradingProfitModel extends BaseModel<tradingProfit>,
 	 * @param impairmentOnAsset the impairment on asset of this trading profit
 	 */
 	public void setImpairmentOnAsset(double impairmentOnAsset);
+
+	/**
+	 * Returns the others of this trading profit.
+	 *
+	 * @return the others of this trading profit
+	 */
+	public double getOthers();
+
+	/**
+	 * Sets the others of this trading profit.
+	 *
+	 * @param others the others of this trading profit
+	 */
+	public void setOthers(double others);
 
 	@Override
 	public boolean isNew();

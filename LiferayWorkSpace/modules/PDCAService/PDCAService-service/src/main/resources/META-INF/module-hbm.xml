@@ -76,6 +76,7 @@
 		<property column="uuid_" name="uuid" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property name="periodId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property name="companyId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property name="year" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property name="npat" type="com.liferay.portal.dao.orm.hibernate.DoubleType" />
 		<property name="netForex" type="com.liferay.portal.dao.orm.hibernate.DoubleType" />
 		<property name="ppeDispos" type="com.liferay.portal.dao.orm.hibernate.DoubleType" />
@@ -83,6 +84,7 @@
 		<property name="investment" type="com.liferay.portal.dao.orm.hibernate.DoubleType" />
 		<property name="taxExpense" type="com.liferay.portal.dao.orm.hibernate.DoubleType" />
 		<property name="impairmentOnAsset" type="com.liferay.portal.dao.orm.hibernate.DoubleType" />
+		<property name="others" type="com.liferay.portal.dao.orm.hibernate.DoubleType" />
 	</class>
 	<class name="com.astra.anblicks.pdca.model.impl.typeImpl" table="pdca_type">
 		<id name="typeId" type="long">

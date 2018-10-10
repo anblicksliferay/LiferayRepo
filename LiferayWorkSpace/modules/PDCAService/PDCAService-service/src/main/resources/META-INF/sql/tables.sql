@@ -56,13 +56,15 @@ create table pdca_tradingProfit (
 	tradingProfitId LONG not null primary key,
 	periodId LONG,
 	companyId LONG,
+	year LONG,
 	npat DOUBLE,
 	netForex DOUBLE,
 	ppeDispos DOUBLE,
 	revalutionOnPropertyInvestment DOUBLE,
 	investment DOUBLE,
 	taxExpense DOUBLE,
-	impairmentOnAsset DOUBLE
+	impairmentOnAsset DOUBLE,
+	others DOUBLE
 );
 
 create table pdca_type (

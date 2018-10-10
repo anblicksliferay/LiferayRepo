@@ -1553,6 +1553,7 @@ public class tradingProfitPersistenceImpl extends BasePersistenceImpl<tradingPro
 		tradingProfitImpl.setTradingProfitId(tradingProfit.getTradingProfitId());
 		tradingProfitImpl.setPeriodId(tradingProfit.getPeriodId());
 		tradingProfitImpl.setCompanyId(tradingProfit.getCompanyId());
+		tradingProfitImpl.setYear(tradingProfit.getYear());
 		tradingProfitImpl.setNpat(tradingProfit.getNpat());
 		tradingProfitImpl.setNetForex(tradingProfit.getNetForex());
 		tradingProfitImpl.setPpeDispos(tradingProfit.getPpeDispos());
@@ -1560,6 +1561,7 @@ public class tradingProfitPersistenceImpl extends BasePersistenceImpl<tradingPro
 		tradingProfitImpl.setInvestment(tradingProfit.getInvestment());
 		tradingProfitImpl.setTaxExpense(tradingProfit.getTaxExpense());
 		tradingProfitImpl.setImpairmentOnAsset(tradingProfit.getImpairmentOnAsset());
+		tradingProfitImpl.setOthers(tradingProfit.getOthers());
 
 		return tradingProfitImpl;
 	}
