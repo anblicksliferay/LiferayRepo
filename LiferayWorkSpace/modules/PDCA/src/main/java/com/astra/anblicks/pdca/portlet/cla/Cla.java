@@ -236,7 +236,7 @@ public class Cla extends MVCPortlet {
 		for (com.astra.anblicks.pdca.model.period Achivementperiod : getperiods) {
 			if (Achivementperiod.getPeriodName().equals(period)) {
 				periodId = Achivementperiod.getPeriodId();
-				System.out.println(periodId);
+			//	System.out.println(periodId);
 				break;
 			}
 		}
@@ -247,8 +247,6 @@ public class Cla extends MVCPortlet {
 		reqcriterion = RestrictionsFactoryUtil.eq("periodId", periodId);
 		dynamicQueryForCla_Kpi.add(reqcriterion);
 		List<cla_kpi> claKpiList = cla_kpiLocalServiceUtil.dynamicQuery(dynamicQueryForCla_Kpi);
-
-		System.out.println(claKpiList);
 
 		JSONObject json = JSONFactoryUtil.createJSONObject();
 		json.put("kpiId", kpiMode_.getKpiId());

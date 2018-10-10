@@ -35,14 +35,17 @@ import com.astra.anblicks.pdca.constants.PDCAPortletKeys;
 import com.astra.anblicks.pdca.model.tradingProfit;
 import com.astra.anblicks.pdca.service.cla_kpiLocalServiceUtil;
 import com.astra.anblicks.pdca.service.companyLocalServiceUtil;
+import com.astra.anblicks.pdca.service.periodLocalServiceUtil;
 import com.astra.anblicks.pdca.service.tradingProfitLocalServiceUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppServiceUtil;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalServiceUtil;
+import com.liferay.portal.kernel.dao.orm.Criterion;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -165,21 +168,26 @@ public class Reports extends MVCPortlet {
 	 */
 	private void reportForTPBreakdown(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
 			FileEntry fileEntry, File file, long periodId, long year) throws PortalException {
+		
+		//TODO Add Headers to Excel File
 		long timeNow = System.currentTimeMillis();
 		int rowIndex = 1;
 		int starIndex = 4;
 		final long latest = timeNow;
-		String title = "Report_TP_BreakDown_"+latest;
+		String PeriodName = periodLocalServiceUtil.getperiod(periodId).getPeriodName();
+		String title = "Report_TP_BreakDown_"+PeriodName+"_"+year+"_"+latest;
 		String description = PDCAPortletKeys.TPBreakDown_Desc;
 		String url = null;
 		
-		//TODO Querying the TradingProfit value per year also
 		DynamicQuery dynamicQueryForTradeProfit = tradingProfitLocalServiceUtil.dynamicQuery();
 		dynamicQueryForTradeProfit.add(PropertyFactoryUtil.forName("periodId").eq(periodId));
+		Criterion reqcriterion = null;
+		reqcriterion = RestrictionsFactoryUtil.eq("year", year);
+		dynamicQueryForTradeProfit.add(reqcriterion);
 		List<tradingProfit> TradeProfitList = cla_kpiLocalServiceUtil.dynamicQuery(dynamicQueryForTradeProfit);
 		
 		XSSFWorkbook workbook = new XSSFWorkbook();
-		XSSFSheet sheet = workbook.createSheet("Tp_BreakDown");
+		XSSFSheet sheet = workbook.getSheet("Tp_BreakDown");
 		
 		//TODO implement the Lambda Expression forEach loop
 		
@@ -194,9 +202,11 @@ public class Reports extends MVCPortlet {
 			row.createCell(4).setCellValue(tpb.getPpeDispos());
 			row.createCell(5).setCellValue(tpb.getRevalutionOnPropertyInvestment());
 			row.createCell(6).setCellValue(tpb.getInvestment());
-			row.createCell(7).setCellValue(tpb.getImpairmentOnAsset());
-			row.createCell(8).setCellValue(Tdp_Converted_Json.getDouble("Total"));
-			row.createCell(9).setCellValue(Tdp_Converted_Json.getDouble("TradingProfit"));	
+			row.createCell(7).setCellValue(tpb.getTaxExpense());
+			row.createCell(8).setCellValue(tpb.getImpairmentOnAsset());
+			row.createCell(9).setCellValue(tpb.getOthers());
+			row.createCell(10).setCellValue(Tdp_Converted_Json.getDouble("Total"));
+			row.createCell(11).setCellValue(Tdp_Converted_Json.getDouble("TradingProfit"));	
 			rowIndex++;
 		} 
 		
@@ -225,7 +235,8 @@ public class Reports extends MVCPortlet {
 	 * @return Json String of TP value and Total OneOff
 	 */
 	private String getTradingProfitValueAndTotalOneOff(tradingProfit tpb) {
-		double total = tpb.getPpeDispos() + tpb.getRevalutionOnPropertyInvestment() + tpb.getInvestment() + tpb.getTaxExpense() + tpb.getImpairmentOnAsset();		                                   
+		double total = tpb.getPpeDispos() + tpb.getRevalutionOnPropertyInvestment() + tpb.getInvestment() + 
+				tpb.getTaxExpense() + tpb.getImpairmentOnAsset()+tpb.getOthers();		                                   
 		double tradingProfit = tpb.getNpat() - tpb.getNetForex() - (total);
 		JSONObject Tp_Breakdown_Json = JSONFactoryUtil.createJSONObject();
 		Tp_Breakdown_Json.put("Total", total);
@@ -274,7 +285,6 @@ public class Reports extends MVCPortlet {
 			DLAppServiceUtil.getFolder(themeDisplay.getScopeGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 					ROOT_FOLDER_NAME);
 			folderExist = true;
-			System.out.println("Folder is already Exist");
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
