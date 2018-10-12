@@ -82,7 +82,7 @@ public class companyModelImpl extends BaseModelImpl<company>
 	public static final String TABLE_SQL_DROP = "drop table pdca_company";
 	public static final String ORDER_BY_JPQL = " ORDER BY company.companyId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY pdca_company.companyId ASC";
-	public static final String DATA_SOURCE = "liferayDataSource";
+	public static final String DATA_SOURCE = "extDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
 	public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(com.astra.anblicks.pdca.service.util.ServiceProps.get(

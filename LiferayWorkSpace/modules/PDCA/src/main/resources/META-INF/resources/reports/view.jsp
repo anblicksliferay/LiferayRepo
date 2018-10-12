@@ -47,9 +47,10 @@ function getreporturl(){
 	    	<portlet:namespace />year: $("#<portlet:namespace />year").val()
 	    },
 	      type : "POST",
-	      dataType: "text",
+	      dataType: "json",
 	    success : function(data) {
 	        console.log(data);
+	        window.open(data.URL, '_blank');
 	    },
 	    error : function(response) {
 	       console.log("Error seen for loadDivisonDepName");

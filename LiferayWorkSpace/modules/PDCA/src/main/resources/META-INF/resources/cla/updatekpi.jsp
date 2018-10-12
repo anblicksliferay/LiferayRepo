@@ -1,36 +1,17 @@
+<%@page import="java.util.List"%>
+<%@page import="com.astra.anblicks.pdca.service.companyLocalServiceUtil"%>
+<%@page import="com.astra.anblicks.pdca.model.company"%>
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 <%@ include file="/cla/init.jsp" %>
 
 <portlet:resourceURL var="listURL"/>
 <portlet:actionURL var="deleteProfile" name="deleteProfile"/>
 <portlet:actionURL var="editProfile" name="editProfile"/>
-
-
-<div class="row">
-<div class="col-md-2">
 <portlet:actionURL var="addKpi" name="addKpi"/>
-<form name="addKpi" id="addKpi" action="<%=addKpi.toString() %>" method="post" name="update">
-<button class="btn-success">Add New Data</button>
-</form>
-</div>
 
-<div class="col-md-2">
+
+
 <portlet:actionURL var="getfile" name="getfile"/>
-<form name="getfileFrom" id="getfileFrom" action="<%=getfile.toString() %>" method="post" name="update">
-<button   class="btn-success">Get Kpi Data</button>
-</form> 
-</div>
-
-<div class="col-md-2">
-<portlet:actionURL var="getpdffile" name="getpdffile"/>
-<form name="getpdffileFrom" id="getpdffileFrom" action="<%=getpdffile.toString() %>" method="post" name="update">
-<button   class="btn-success">Get Kpi Pdf Data</button>
-</form> 
-</div>
-</div>
-
-
-
 <%
 String kpidevData= (String) request.getAttribute("update_kpi_json");
 %>
@@ -43,15 +24,42 @@ String kpidevData= (String) request.getAttribute("update_kpi_json");
 <div id="confirmDelete_Admin" style="background-color:#ffffff;  height: 15px; display: none;">
 				<p style="margin: -9px 0 10px;" >Confirm Delete</p>
 			</div> 
-			 <button type="button" class="btn btn-info" onclick="renderaddkpiPage('addkpi')">Add New Data</button>
-			 <div class="new-buttons-area"></div>
+
+<div class="row">
+<div class="col-md-4">
+<div class="col-md-8">
+<select class="getTableDataOnchage"  id="company_"> 
+<option value="">Select Company</option>
+<% List<company> companyList_=companyLocalServiceUtil.getcompanies(0, companyLocalServiceUtil.getcompaniesCount());
+for( company val:companyList_){%>
+<option value="<%=val.getCompanyId()%>"><%=val.getCompanyName() %></option>
+
+	<% }%>
+</select>
+</div>
+</div>
+<div class="col-md-4">
+<div class="col-md-8">
+<select class="getTableDataOnchage" id="year_"> 
+ <option value="">Select Year</option>
+         <option value="2018">2018</option>
+         <option value="2017">2017</option>
+          <option value="2016">2016</option>
+           <option value="2015">2015</option>
+            <option value="2014">2014</option></select>
+</div>
+</div>
+<div class="col-md-4"> <a  href="/group/astrapdca/addkpi" class="btn btn-info ">Add New Data </a>
+</div>
+</div>
+ 	 <div class="new-buttons-area"></div>
  <ul class="nav nav-tabs">
-    <li class="active dev"><a data-toggle="tab" href="#home" onclick="drawDataTable('dev');">Development</a></li>
-    <li class="dev"><a data-toggle="tab" href="#menu1" onclick="drawDataTable('OL1Achivement');" >  &nbsp;&nbsp; &nbsp;OL 1 &nbsp;&nbsp; &nbsp;  </a></li>
-    <li class="dev"><a data-toggle="tab" href="#menu2" onclick="drawDataTable('OL2Achivement');" >  &nbsp;&nbsp; &nbsp;OL 2 &nbsp; &nbsp; &nbsp; </a></li>
-    <li class="dev" ><a data-toggle="tab" href="#menu3" onclick="drawDataTable('OL2AdjAchivement');" > &nbsp; &nbsp; OL Adjusted &nbsp; &nbsp;</a></li>
-    <li class="dev" ><a data-toggle="tab" href="#menu3" onclick="drawDataTable('OL3Achivement');" >  &nbsp; &nbsp; &nbsp;OL 3 &nbsp; &nbsp; &nbsp; </a></li>
-    <li class="dev" ><a data-toggle="tab" href="#menu3" onclick="drawDataTable('FYAchivement');" > &nbsp; &nbsp; &nbsp; Full Year &nbsp; &nbsp; &nbsp; </a></li>
+    <li class="active dev"><a data-toggle="tab" href="#home" onclick="drawDataTable('0');">Development</a></li>
+    <li class="dev"><a data-toggle="tab" href="#menu1" onclick="drawDataTable('1');" >  &nbsp;&nbsp; &nbsp;OL 1 &nbsp;&nbsp; &nbsp;  </a></li>
+    <li class="dev"><a data-toggle="tab" href="#menu2" onclick="drawDataTable('2');" >  &nbsp;&nbsp; &nbsp;OL 2 &nbsp; &nbsp; &nbsp; </a></li>
+    <li class="dev" ><a data-toggle="tab" href="#menu3" onclick="drawDataTable('3');" > &nbsp; &nbsp; OL Adjusted &nbsp; &nbsp;</a></li>
+    <li class="dev" ><a data-toggle="tab" href="#menu3" onclick="drawDataTable('4');" >  &nbsp; &nbsp; &nbsp;OL 3 &nbsp; &nbsp; &nbsp; </a></li>
+    <li class="dev" ><a data-toggle="tab" href="#menu3" onclick="drawDataTable('5');" > &nbsp; &nbsp; &nbsp; Full Year &nbsp; &nbsp; &nbsp; </a></li>
    
  <div class="new-search-area"></div>
   </ul>
@@ -66,7 +74,7 @@ String kpidevData= (String) request.getAttribute("update_kpi_json");
 		            <th>Unit</th>
 		            <th>Target</th>
 		            <th>Weight</th>
-		            <th>Achivement F</th>
+		            <th>Achivement Formula</th>
 		             <th>YTD</th>
 		             <th>OL 1 FY</th>
 		             <th>OL 2 FY</th>
@@ -145,7 +153,8 @@ var devDataGrid=null;
 			title:			'',
 			orderable:		true,
 			data:			null, //editbutton  deleteButton
-		defaultContent: '<span class=" glyphicon glyphicon-edit editbutton" style="cursor: pointer;"> </span>   <span class="glyphicon glyphicon-trash deleteButton" style="cursor: pointer;"></span>'
+		defaultContent:
+			'<span class=" glyphicon glyphicon-edit editbutton" style="cursor: pointer;"> </span>   <span class="glyphicon glyphicon-trash deleteButton" style="cursor: pointer;"></span>'
 		}
 		],
 		
@@ -223,10 +232,10 @@ var devDataGrid=null;
 	  $('.devDataTablePhycial tbody').on( 'click', '.editbutton', function () {
 	        var data = devDataGrid.row( $(this).parents('tr') ).data();
 	        console.log("edit");
-	        console.log(data.kpiId);
+	        console.log(data);
 	        $('#<portlet:namespace/>editid').val(data.kpiId);
-	       // window.location.href = 'cla';
-	    //	$('#editForm').submit();
+		  location.href="/group/astrapdca/addkpi?kpiId=".concat(data.kpiId)+"&Period=".concat(data.period)+"&companyId=not yet defined in table";
+
 	    } );
      $('.devDataTablePhycial tbody').on( 'click', '.deleteButton', function () {
 	   var data = devDataGrid.row( $(this).parents('tr') ).data();
@@ -252,7 +261,45 @@ var devDataGrid=null;
  		},
  	}
  	});
-     
+
+     $('.getTableDataOnchage').change(function(){
+    	 
+    	 $.ajax({  
+    			url : '<%=listURL.toString()%>',
+    			data : {
+    					<portlet:namespace />cmd: 'getTableDataOnchage',
+    					<portlet:namespace />company:$("#company_").val(),
+    					<portlet:namespace />year:$("#year_").val(),
+    						},
+    			type : "POST",
+    			dataType : "json",
+    			success : function(data) { 
+    		
+    			//	console.log(data.kpi_Data[0].period);
+    				var periodString=data.kpi_Data[0].period;
+    				devDataGrid.column(5).visible(true);
+    			devDataGrid.column(6).visible(false);
+    			devDataGrid.column(7).visible(false); //1
+    		    devDataGrid.column(8).visible(false); //2
+    		    devDataGrid.column(9).visible(false);//adj
+    		    devDataGrid.column(10).visible(false);// 3
+    		    devDataGrid.column(11).visible(false);// fy
+    		    devDataGrid.column(12).visible(false);
+    		    devDataGrid.column(13).visible(false);
+    				           var data = data.kpi_Data;
+    					       devDataGrid.clear();	
+    					       devDataGrid.rows.add(data).draw();
+    					       devDataGrid.draw();
+    			    
+    				
+    			},	
+    			error : function(response) {
+    				console.log("Error seen for updateValues");
+    				$("#<portlet:namespace />warning").show();
+    			}
+    		});
+    	 
+     });
       
 function drawDataTable(val) {
 	var cmd = 'list';
@@ -268,8 +315,9 @@ function drawDataTable(val) {
 	
 		//	console.log(data.kpi_Data[0].period);
 			var periodString=data.kpi_Data[0].period;
-			if(periodString == "dev")
-    	{  
+			if(periodString == "0")
+    	{
+		devDataGrid.column(5).visible(true);
 		devDataGrid.column(6).visible(false);
 		devDataGrid.column(7).visible(false); //1
 	    devDataGrid.column(8).visible(false); //2
@@ -285,8 +333,9 @@ function drawDataTable(val) {
 		    
 		}
 			
-			if(periodString=="OL1Achivement")
+			if(periodString=="1")
 			{
+				devDataGrid.column(5).visible(false);
 				devDataGrid.column(6).visible(true);
 			devDataGrid.column(7).visible(true); //1
 		    devDataGrid.column(8).visible(false); //2
@@ -301,8 +350,9 @@ function drawDataTable(val) {
 			       devDataGrid.draw();
 			    
 			}
-			if(periodString=="OL2Achivement")
+			if(periodString=="2")
 			{
+				devDataGrid.column(5).visible(false);
 			devDataGrid.column(6).visible(true);
 			devDataGrid.column(7).visible(false); //1
 		    devDataGrid.column(8).visible(true); //2
@@ -317,8 +367,9 @@ function drawDataTable(val) {
 			       devDataGrid.draw();
 			    
 			}
-			if(periodString=="OL2AdjAchivement")
+			if(periodString=="3")
 			{
+				devDataGrid.column(5).visible(false);
 			devDataGrid.column(6).visible(true);
 			devDataGrid.column(7).visible(false); //1
 		    devDataGrid.column(8).visible(false); //2
@@ -333,8 +384,9 @@ function drawDataTable(val) {
 			       devDataGrid.draw();
 			    
 			}
-			if(periodString=="OL3Achivement")
+			if(periodString=="4")
 			{
+				devDataGrid.column(5).visible(false);
 			devDataGrid.column(6).visible(true);
 			devDataGrid.column(7).visible(false); //1
 		    devDataGrid.column(8).visible(false); //2
@@ -349,8 +401,9 @@ function drawDataTable(val) {
 			       devDataGrid.draw();
 			    
 			}
-			if(periodString=="FYAchivement")
+			if(periodString=="5")
 			{
+				devDataGrid.column(5).visible(false);
 			devDataGrid.column(6).visible(true);
 			devDataGrid.column(7).visible(false); //1
 		    devDataGrid.column(8).visible(false); //2
@@ -374,13 +427,6 @@ function drawDataTable(val) {
 	});
 } ;
 
-
-function renderaddkpiPage(val){
-	if(val=='addkpi'){
-		 window.location.href = 'addkpi';
-	}
-	
-}
 </script>
 
 <style>

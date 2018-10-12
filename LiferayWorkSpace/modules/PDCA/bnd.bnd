@@ -1,11 +1,27 @@
 Bundle-Name: PDCA
 Bundle-SymbolicName: com.astra.anblicks.pdca
 Bundle-Version: 1.0.0
-Export-Package: com.astra.anblicks.pdca.constants
+Export-Package: com.astra.anblicks.pdca.constants,\
+sqlj,\
+sqlj.*,\
+sqlj.runtime,\
+sqlj.runtime.error,\
+sqlj.framework.error,\
+sqlj.framework.ide,\
+sqlj.framework.options,\
+sqlj.mesg,\
+sqlj.tools,\
+sqlj.util.io,\
+sun.io,\
+sun.security.action
+
 -jsp: *.jsp,*.jspf
 -plugin.bundle: com.liferay.ant.bnd.resource.bundle.ResourceBundleLoaderAnalyzerPlugin
 -plugin.jsp: com.liferay.ant.bnd.jsp.JspAnalyzerPlugin
 -sources: true
+
+
+
 
 
 
@@ -35,5 +51,6 @@ Import-Package: \
     !org.relaxng.datatype,\
     !org.xmlpull.v1,\
     !com.graphbuilder*,\
+    com.mysql.jdbc,\
     *
 	

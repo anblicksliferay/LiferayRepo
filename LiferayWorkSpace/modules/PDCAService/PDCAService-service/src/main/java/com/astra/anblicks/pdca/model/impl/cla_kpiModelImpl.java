@@ -92,7 +92,7 @@ public class cla_kpiModelImpl extends BaseModelImpl<cla_kpi>
 	public static final String TABLE_SQL_DROP = "drop table pdca_cla_kpi";
 	public static final String ORDER_BY_JPQL = " ORDER BY cla_kpi.claKpiId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY pdca_cla_kpi.claKpiId ASC";
-	public static final String DATA_SOURCE = "liferayDataSource";
+	public static final String DATA_SOURCE = "extDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
 	public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(com.astra.anblicks.pdca.service.util.ServiceProps.get(

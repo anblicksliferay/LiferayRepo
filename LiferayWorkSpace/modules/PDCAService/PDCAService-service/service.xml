@@ -7,32 +7,32 @@
 	
 	<!-- LookUp Tables for Static Data -->
 	
-	<entity local-service="true" name="type" remote-service="true" uuid="true">
+	<entity local-service="true" name="type" remote-service="true" data-source="extDataSource" uuid="true">
 	   <column name="typeId" primary="true" type="long" />
 	   <column name="typeName" type="String" />
 	</entity>
 	
 	
-	<entity local-service="true" name="itemDescription" remote-service="true" uuid="true">
+	<entity local-service="true" name="itemDescription" remote-service="true" data-source="extDataSource" uuid="true">
 	   <column name="itemDescriptionId" primary="true" type="long" />
 	   <column name="itemDescriptionName" type="String" />
 	</entity>
 	
 	
-	<entity local-service="true" name="achivementFormula" remote-service="true" uuid="true">
+	<entity local-service="true" name="achivementFormula" remote-service="true" data-source="extDataSource" uuid="true">
 	   <column name="achivementFormulaId" primary="true" type="long" />
 	   <column name="achivementFormula" type="String" />
 	   <column name="itemDescriptionId" type="long" />
 	</entity>
 	
 	
-	<entity local-service="true" name="period" remote-service="true" uuid="true">
+	<entity local-service="true" name="period" remote-service="true" data-source="extDataSource" uuid="true">
 	   <column name="periodId" primary="true" type="long" />
 	   <column name="periodName" type="String" />
 	</entity>
 	
 	
-	<entity local-service="true" name="tradingProfit" remote-service="true" uuid="true">
+	<entity local-service="true" name="tradingProfit" remote-service="true" data-source="extDataSource" uuid="true">
 	   <column name="tradingProfitId" primary="true" type="long" />
 	   <column name="periodId" type="long" />
 	   <column name="companyId" type="long" />
@@ -51,7 +51,7 @@
 	
 	<!-- Master Tables For CLA Module -->
 	
-	<entity local-service="true" name="kpi" remote-service="true" uuid="true">
+	<entity local-service="true" name="kpi" remote-service="true" data-source="extDataSource" uuid="true">
 	   <column name="kpiId" primary="true" type="long" />
 	   <column name="companyId" type="long" />
 	   <column name="typeId" type="long" />
@@ -71,7 +71,7 @@
 		<column name="modifiedDate" type="Date" />
 	</entity>
 	
-	<entity local-service="true" name="cla_kpi" remote-service="true" uuid="true">
+	<entity local-service="true" name="cla_kpi" remote-service="true" data-source="extDataSource" uuid="true">
 	    <column name="claKpiId" primary="true" type="long" />
 	    <column name="kpiId" type="long" />
 	    <column name="periodId" type="long" />
@@ -84,7 +84,7 @@
 	<!-- End Of Master Tables Of CLA Module -->
 	
 	<!-- Assume Sample Company Table -->
-	<entity local-service="true" name="company" remote-service="true" uuid="true">
+	<entity local-service="true" name="company" remote-service="true" data-source="extDataSource" uuid="true">
 	    <column name="companyId" primary="true" type="long" />
 	    <column name="companyName" type="String" />
 	</entity>

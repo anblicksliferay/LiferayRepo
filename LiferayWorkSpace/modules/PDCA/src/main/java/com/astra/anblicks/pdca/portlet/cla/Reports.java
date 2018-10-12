@@ -19,10 +19,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Connection;
 import java.util.List;
 
 import javax.portlet.Portlet;
 import javax.portlet.PortletException;
+import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 
@@ -37,6 +40,8 @@ import com.astra.anblicks.pdca.service.cla_kpiLocalServiceUtil;
 import com.astra.anblicks.pdca.service.companyLocalServiceUtil;
 import com.astra.anblicks.pdca.service.periodLocalServiceUtil;
 import com.astra.anblicks.pdca.service.tradingProfitLocalServiceUtil;
+import com.astra.anblicks.pdca.services.PdcaMySqlConnection;
+import com.astra.anblicks.pdca.services.PdcaSqlQueries;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
@@ -48,6 +53,7 @@ import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -85,6 +91,14 @@ public class Reports extends MVCPortlet {
 
 	private static Log logger = LogFactoryUtil.getLog(Reports.class.getName());
 	
+	@Override
+	public void doView(RenderRequest renderRequest, RenderResponse renderResponse)
+			throws IOException, PortletException {
+		Connection conn = PdcaMySqlConnection.getConnection();
+		PdcaSqlQueries.getkpis(conn);
+		super.doView(renderRequest, renderResponse);
+	}
+	
 	
 	
 	/** 
@@ -98,11 +112,20 @@ public class Reports extends MVCPortlet {
 		String periodId = ParamUtil.getString(resourceRequest, "periodId");
 		String year = ParamUtil.getString(resourceRequest, "year");
 		
-		String reportDownloadUrl = getFile(Integer.parseInt(reportId),Long.parseLong(periodId),Long.parseLong(year),resourceRequest,resourceResponse);
+		String reportData = getFile(Integer.parseInt(reportId),Long.parseLong(periodId),Long.parseLong(year),resourceRequest,resourceResponse);
         
-        logger.info("Report : "+reportId+" Period :"+periodId+" Year : "+year);
+		 try {
+			writeJSON(resourceRequest, resourceResponse,JSONFactoryUtil.createJSONObject(reportData) );
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
         
-        logger.info("reportDownloadUrl :"+reportDownloadUrl);
+		
+		
+		logger.info("Report : "+reportId+" Period :"+periodId+" Year : "+year);
+        
+        logger.info("reportDownloadUrl :"+reportData);
 	}
 	
 	
@@ -125,6 +148,9 @@ public class Reports extends MVCPortlet {
 			Long parentFolderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
 			Folder folder = DLAppServiceUtil.getFolder(themeDisplay.getScopeGroupId(), parentFolderId,
 					PDCAPortletKeys.AstraParentFolderName);
+			FileEntry fileEntry = DLAppServiceUtil.getFileEntry(repositoryId, folder.getFolderId(),
+					PDCAPortletKeys.AstraSampleExcel);
+			File file = DLFileEntryLocalServiceUtil.getFile(fileEntry.getFileEntryId(), "", true);
 			boolean isFolderExist = isFolderExist(themeDisplay, PDCAPortletKeys.CLAFolderName);
 			if (!isFolderExist) {
 				createFolder(resourceRequest, themeDisplay, PDCAPortletKeys.CLAFolderName);
@@ -132,12 +158,9 @@ public class Reports extends MVCPortlet {
 			Folder rootfolder = getFolder(themeDisplay, PDCAPortletKeys.CLAFolderName);
 			switch (reportId) {
 			case 1:
-				FileEntry fileEntry = DLAppServiceUtil.getFileEntry(repositoryId, folder.getFolderId(),
-						PDCAPortletKeys.AstraSampleExcelForTPBreakDown);
-				File file = DLFileEntryLocalServiceUtil.getFile(fileEntry.getFileEntryId(), "", true);
-				reportForTPBreakdown(themeDisplay,resourceRequest, rootfolder, fileEntry, file,periodId,year);
-				break;
+				return reportForTPBreakdown(themeDisplay, resourceRequest, rootfolder, fileEntry, file, periodId, year);
 			case 2:
+				reportForFullYear(themeDisplay, resourceRequest, rootfolder, fileEntry, file, year);
 				break;
 			case 3:
 				break;
@@ -155,18 +178,17 @@ public class Reports extends MVCPortlet {
 		return "";
 
 	}
-	
-	
-	
-	
+
+
+
 	/**
-	 * Method for Implementation of Report For TPBreakDown
+	 * Method for Implementation of Report For TP_BreakDown
 	 * @param themeDisplay,resourceRequest,rootfolder,fileEntry,file,periodId,year
 	 * @throws PortalException
 	 * @return Json String of Download Url and Relevent Report Json Data 
 	 * 
 	 */
-	private void reportForTPBreakdown(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
+	private String reportForTPBreakdown(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
 			FileEntry fileEntry, File file, long periodId, long year) throws PortalException {
 		
 		//TODO Add Headers to Excel File
@@ -179,6 +201,8 @@ public class Reports extends MVCPortlet {
 		String description = PDCAPortletKeys.TPBreakDown_Desc;
 		String url = null;
 		
+		
+		
 		DynamicQuery dynamicQueryForTradeProfit = tradingProfitLocalServiceUtil.dynamicQuery();
 		dynamicQueryForTradeProfit.add(PropertyFactoryUtil.forName("periodId").eq(periodId));
 		Criterion reqcriterion = null;
@@ -187,7 +211,7 @@ public class Reports extends MVCPortlet {
 		List<tradingProfit> TradeProfitList = cla_kpiLocalServiceUtil.dynamicQuery(dynamicQueryForTradeProfit);
 		
 		XSSFWorkbook workbook = new XSSFWorkbook();
-		XSSFSheet sheet = workbook.getSheet("Tp_BreakDown");
+		XSSFSheet sheet = workbook.createSheet("TP_Breakdown Report");
 		
 		//TODO implement the Lambda Expression forEach loop
 		
@@ -208,7 +232,7 @@ public class Reports extends MVCPortlet {
 			row.createCell(10).setCellValue(Tdp_Converted_Json.getDouble("Total"));
 			row.createCell(11).setCellValue(Tdp_Converted_Json.getDouble("TradingProfit"));	
 			rowIndex++;
-		} 
+		}  
 		
 		  FileOutputStream outputStream;
 		  try {
@@ -222,6 +246,35 @@ public class Reports extends MVCPortlet {
 		  FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
 		  url = themeDisplay.getPortalURL() + themeDisplay.getPathContext() +"/documents/" + themeDisplay.getScopeGroupId() + "/" +addFileEntry.getFolderId() + "/" + addFileEntry.getTitle();
 		  System.out.println(url);
+		  JSONObject reportdata = JSONFactoryUtil.createJSONObject();
+		  reportdata.put("URL", url);
+		  //TODO pass the list to json 
+		  return reportdata.toString();
+	}
+	
+	
+	/**
+	 * Method for Implementation of Report For FullYear
+	 * @param themeDisplay,resourceRequest,rootfolder,fileEntry,file,year
+	 * @throws PortalException
+	 * @return Json String of Download Url and Relevent Report Json Data 
+	 * 
+	 */
+	private void reportForFullYear(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
+			FileEntry fileEntry, File file, long year) {
+		
+		//TODO Add Headers to Excel File
+				long timeNow = System.currentTimeMillis();
+				int rowIndex = 1;
+				int starIndex = 4;
+				final long latest = timeNow;
+				String title = "Report_FullYear_"+"_"+year+"_"+latest;
+				String description = PDCAPortletKeys.FullYear_Desc;
+				String url = null;
+				
+			
+		
+		
 	}
 		
 

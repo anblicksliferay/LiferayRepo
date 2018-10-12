@@ -1,10 +1,18 @@
 package com.astra.anblicks.pdca.utils;
 
+import java.util.List;
+
 import com.astra.anblicks.pdca.model.kpi;
 import com.astra.anblicks.pdca.model.tradingProfit;
 import com.astra.anblicks.pdca.service.kpiLocalServiceUtil;
 import com.astra.anblicks.pdca.service.tradingProfitLocalServiceUtil;
+import com.liferay.portal.kernel.dao.orm.Criterion;
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -17,7 +25,7 @@ public class CLACalculations {
 	
 	private static Log logger = LogFactoryUtil.getLog(CLACalculations.class.getName());
 	
-	public static void getClaCalculations(long kpiId,long periodId) throws PortalException{
+	public static String getClaCalculations(long kpiId,long periodId) throws PortalException{
 		
 		kpi kpiObject = kpiLocalServiceUtil.getkpi(kpiId);
 		
@@ -62,8 +70,13 @@ public class CLACalculations {
 		
 		logger.info("OLFY : "+OL_FY + "  OL_Achivement :"+OL_Achivement + " Cla_Point : "+ Cla_Point);
 		
+		JSONObject Cla_CalculationObject = JSONFactoryUtil.createJSONObject();
+		Cla_CalculationObject.put("OLFY", OL_FY);
+		Cla_CalculationObject.put("OL_Achivement",OL_Achivement);
+		Cla_CalculationObject.put("Cla_Point", Cla_Point);
+		Cla_CalculationObject.put("sucess", "updated");
 		
-		//TODO Push these values in DB With cla_kpiId(to get from the kpiId and periodId)...
+		return Cla_CalculationObject.toString();
 		
 		
 	}
@@ -117,8 +130,14 @@ public class CLACalculations {
 	 * @throws PortalException
 	 */
 	public static double getTradingProfit(long periodId,long companyId, long year) throws PortalException {
-		//TODO Querying TradingProfit Object Based on PeriodId , CompanyId and Year
-		tradingProfit getTradingProfitObject = tradingProfitLocalServiceUtil.gettradingProfit(periodId);
+		DynamicQuery dynamicQueryForTradingProfit = tradingProfitLocalServiceUtil.dynamicQuery();
+		dynamicQueryForTradingProfit.add(PropertyFactoryUtil.forName("companyId").eq(companyId) );
+		Criterion reqcriterion = RestrictionsFactoryUtil.eq("periodId",periodId);
+		Criterion reqcriterion2 = RestrictionsFactoryUtil.eq("year",year);
+		dynamicQueryForTradingProfit.add(reqcriterion);
+		dynamicQueryForTradingProfit.add(reqcriterion2);
+		List <com.astra.anblicks.pdca.model.tradingProfit> tradingProfitList = tradingProfitLocalServiceUtil.dynamicQuery(dynamicQueryForTradingProfit);
+		tradingProfit getTradingProfitObject = tradingProfitList.get(0);
 		
 		double tradingProfit = getTradingProfitObject.getNpat() - getTradingProfitObject.getNetForex()
 				- (getTradingProfitObject.getPpeDispos() + getTradingProfitObject.getRevalutionOnPropertyInvestment()

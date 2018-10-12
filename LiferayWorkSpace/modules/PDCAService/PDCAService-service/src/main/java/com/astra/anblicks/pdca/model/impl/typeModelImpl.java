@@ -81,7 +81,7 @@ public class typeModelImpl extends BaseModelImpl<type> implements typeModel {
 	public static final String TABLE_SQL_DROP = "drop table pdca_type";
 	public static final String ORDER_BY_JPQL = " ORDER BY type.typeId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY pdca_type.typeId ASC";
-	public static final String DATA_SOURCE = "liferayDataSource";
+	public static final String DATA_SOURCE = "extDataSource";
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 	public static final String TX_MANAGER = "liferayTransactionManager";
 	public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(com.astra.anblicks.pdca.service.util.ServiceProps.get(
