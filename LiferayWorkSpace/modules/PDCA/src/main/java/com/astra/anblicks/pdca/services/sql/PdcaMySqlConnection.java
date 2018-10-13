@@ -1,4 +1,4 @@
-package com.astra.anblicks.pdca.services;
+package com.astra.anblicks.pdca.services.sql;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

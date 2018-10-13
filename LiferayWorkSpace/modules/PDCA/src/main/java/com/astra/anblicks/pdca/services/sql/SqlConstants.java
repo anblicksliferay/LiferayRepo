@@ -1,4 +1,4 @@
-package com.astra.anblicks.pdca.services;
+package com.astra.anblicks.pdca.services.sql;
 
 import com.liferay.portal.kernel.util.PropsUtil;
 
