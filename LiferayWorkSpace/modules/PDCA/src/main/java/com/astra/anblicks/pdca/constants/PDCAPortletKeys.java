@@ -17,6 +17,7 @@ public class PDCAPortletKeys {
 	public static final String AstraSampleExcel = "AstraSampleExcel.xlsx";
 	public static final String TPBreakDown_Desc = "Report for TP BreakDown";
 	public static final String FullYear_Desc = "Report for Full Year";
+	public static final String CP_Desc = "Report for CP";
 	public static final String CLAFolderName = "Astra_CLA";
 	public static final String CLAFolderDesc = "To store the excel files";
 	public static final String CLAExcelDesc = "To do calculations on KPI Data";

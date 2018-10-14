@@ -26,8 +26,6 @@ import java.util.Map;
 
 import javax.portlet.Portlet;
 import javax.portlet.PortletException;
-import javax.portlet.RenderRequest;
-import javax.portlet.RenderResponse;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 
@@ -38,11 +36,14 @@ import org.osgi.service.component.annotations.Component;
 
 import com.astra.anblicks.pdca.constants.PDCAPortletKeys;
 import com.astra.anblicks.pdca.dto.NamedObject;
+import com.astra.anblicks.pdca.dto.ReportForCpDto;
 import com.astra.anblicks.pdca.dto.ReportForFYDto;
 import com.astra.anblicks.pdca.dto.Reportdto;
+import com.astra.anblicks.pdca.model.kpi;
 import com.astra.anblicks.pdca.model.tradingProfit;
 import com.astra.anblicks.pdca.service.cla_kpiLocalServiceUtil;
 import com.astra.anblicks.pdca.service.companyLocalServiceUtil;
+import com.astra.anblicks.pdca.service.kpiLocalServiceUtil;
 import com.astra.anblicks.pdca.service.periodLocalServiceUtil;
 import com.astra.anblicks.pdca.service.tradingProfitLocalServiceUtil;
 import com.astra.anblicks.pdca.services.sql.PdcaMySqlConnection;
@@ -161,7 +162,7 @@ public class Reports extends MVCPortlet {
 			case 2:
 				return reportForFullYear(themeDisplay, resourceRequest, rootfolder, fileEntry, file, reportId, year);
 			case 3:
-				break;
+				return reportForCp(themeDisplay, resourceRequest, rootfolder, fileEntry, file, reportId, year);
 			case 4:
 				break;
 			case 5:
@@ -176,7 +177,6 @@ public class Reports extends MVCPortlet {
 		return "";
 
 	}
-
 
 
 	/**
@@ -263,7 +263,6 @@ public class Reports extends MVCPortlet {
 	private String reportForFullYear(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
 			FileEntry fileEntry, File file, int reportId, long year) throws PortalException {
 		
-		//TODO Add Headers to Excel File
 				long timeNow = System.currentTimeMillis();
 				final long latest = timeNow;
 				String title = "Report_FullYear_"+"_"+year+"_"+latest;
@@ -287,7 +286,82 @@ public class Reports extends MVCPortlet {
 	}	
 	
 	
-	@SuppressWarnings("unchecked")
+	private String reportForCp(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
+			FileEntry fileEntry, File file, int reportId, long year) throws PortalException {
+		
+		long timeNow = System.currentTimeMillis();
+		final long latest = timeNow;
+		String title = "Report_CP_Ol3_"+"_"+year+"_"+latest;
+		String description = PDCAPortletKeys.CP_Desc;
+		String url = null; 
+		
+		Map<Long, List<Reportdto>> reportForCPData = PdcaSqlQueries.getReportForCP(conn, reportId, year);
+		
+		List<ReportForCpDto> CPData = setvaluesForCPData(reportForCPData,year);
+		
+		ExcelUtils.writeToExcel(file, CPData);
+		
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
+		FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
+		url = themeDisplay.getPortalURL() + themeDisplay.getPathContext() +"/documents/" + themeDisplay.getScopeGroupId() + "/" +addFileEntry.getFolderId() + "/" + addFileEntry.getTitle();
+		System.out.println(url);
+		JSONObject reportdata = JSONFactoryUtil.createJSONObject();
+		reportdata.put("URL", url);
+		  //TODO pass the list to json 
+		return reportdata.toString();
+	}
+	
+	
+	private List<ReportForCpDto> setvaluesForCPData(Map<Long, List<Reportdto>> reportForCPData, long year) {
+		
+		List<ReportForCpDto> reportForCPDtoObjects = new ArrayList<ReportForCpDto>();
+		
+		try {
+			
+			  for(Map.Entry<Long, List<Reportdto>> entry: reportForCPData.entrySet()){
+				  List<tradingProfit> tpd = getTradingProfitByCompanyId_Period_Year(entry.getKey(),3,year);
+				  String totalOneOff = getTradingProfitValueAndTotalOneOff(tpd.get(0));
+				  
+				  List<kpi> kpi = getTargetByCompanyId_Year(entry.getKey(),year);
+				  
+				  
+				  
+				  ReportForCpDto reportForCpDto = new ReportForCpDto();
+				  
+				  reportForCpDto.setCompany(companyLocalServiceUtil.getcompany(entry.getKey()).getCompanyName());
+				  
+				  reportForCpDto.setFY_Audited_LastYear(entry.getValue().get(0).getValue());
+				  
+				  reportForCpDto.setTP_TargetCLA_CurrentYear(kpi.get(0).getTarget());
+				  
+				  reportForCpDto.setTP_CPOl3_CurrentYear(tpd.get(0).getNpat() - tpd.get(0).getNetForex());
+				  
+				  reportForCpDto.setOneOff_Ol3_CurrentYear(JSONFactoryUtil.createJSONObject(totalOneOff).getDouble("Total"));
+				  
+				  reportForCpDto.setTP_CLAOl3_CurrentYear(JSONFactoryUtil.createJSONObject(totalOneOff).getDouble("TradingProfit"));
+				  
+				  reportForCpDto.setAchivement_Ol3_CurrentYear(JSONFactoryUtil.createJSONObject(totalOneOff).getDouble("TradingProfit")/kpi.get(0).getTarget());
+				  
+				  reportForCpDto.setNotes_Target("sample");
+				  
+				  
+				  reportForCPDtoObjects.add(reportForCpDto);
+				  
+			  }
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		return reportForCPDtoObjects;
+
+		
+	}
+
+
+
+
+
 	private List<ReportForFYDto> setvaluesForFullYearData(List<NamedObject<Map<Long, List<Reportdto>>>> reportForFullYearData) {
 		
 		List<ReportForFYDto> reportForFYDtoObjects = new ArrayList<ReportForFYDto>();
@@ -361,6 +435,31 @@ public class Reports extends MVCPortlet {
 		return reportForFYDtoObjects;
 		
 	}
+	
+	
+	private List<tradingProfit> getTradingProfitByCompanyId_Period_Year(long companyId,long periodId,long year) {
+		
+		DynamicQuery dynamicQueryForTradingProfit = tradingProfitLocalServiceUtil.dynamicQuery();
+		dynamicQueryForTradingProfit.add(PropertyFactoryUtil.forName("companyId").eq(companyId) );
+		Criterion reqcriterion = RestrictionsFactoryUtil.eq("periodId",periodId);
+		Criterion reqcriterion2 = RestrictionsFactoryUtil.eq("year",year);
+		dynamicQueryForTradingProfit.add(reqcriterion);
+		dynamicQueryForTradingProfit.add(reqcriterion2);
+		return tradingProfitLocalServiceUtil.dynamicQuery(dynamicQueryForTradingProfit);
+		
+	}
+	
+	private List<kpi> getTargetByCompanyId_Year(long companyId,long year) {
+		
+		DynamicQuery dynamicQueryForTarget = kpiLocalServiceUtil.dynamicQuery();
+		dynamicQueryForTarget.add(PropertyFactoryUtil.forName("companyId").eq(companyId) );
+		Criterion reqcriterion = RestrictionsFactoryUtil.eq("year",year);
+		dynamicQueryForTarget.add(reqcriterion);
+		return tradingProfitLocalServiceUtil.dynamicQuery(dynamicQueryForTarget);
+	}
+	
+	
+	
 
 
 

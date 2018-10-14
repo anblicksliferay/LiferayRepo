@@ -2,6 +2,7 @@ package com.astra.anblicks.pdca.services.sql;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,6 +48,33 @@ public class PdcaSqlQueries {
 			// TODO: handle exception
 		}
         return MappedObjects;
+	}
+	
+	public static Map<Long, List<Reportdto>> getReportForCP(Connection conn,int reportId, long year) {
+		
+		    Map<Long, List<Reportdto>> map = new HashMap<Long, List<Reportdto>>();
+		
+		    QueryRunner queryRunner = new QueryRunner();
+	        
+	        ResultSetHandler<List<Reportdto>> resultHandler = new BeanListHandler<Reportdto>(Reportdto.class);
+	        
+	        long previousYear = year-1l;
+	        
+	        try {
+				if(conn!=null) {
+	                 String sql = "SELECT k.companyId AS cid,ck.periodId AS pid,ck.ol AS value, 'Trading_Profit' As type, k.year AS year FROM pdca_kpi k INNER JOIN pdca_cla_kpi ck ON k.kpiId = ck.kpiId WHERE k.year = ? AND ck.periodId IN (?) AND k.itemDescriptionName = ? GROUP BY k.companyId,ck.periodId ORDER BY k.companyId ASC";
+				
+	                 List<Reportdto> TradingProfitKpis_CurrentYear = queryRunner.query(conn, sql, resultHandler,previousYear,5,1);
+	                 
+	                 map = ListtoMap(TradingProfitKpis_CurrentYear);
+				
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+	        
+	        return map;
+		
 	}
 	
 	private static Map<Long, List<Reportdto>> MergeListstoMap(List<Reportdto> list1,
