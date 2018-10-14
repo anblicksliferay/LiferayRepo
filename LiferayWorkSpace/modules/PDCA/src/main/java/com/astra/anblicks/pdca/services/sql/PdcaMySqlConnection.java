@@ -13,8 +13,8 @@ public class PdcaMySqlConnection {
 	public static Connection getConnection() {
 		Connection connection = null;
 		try {
-			Class.forName(SqlConstants._driver).newInstance();
-			connection = DriverManager.getConnection(SqlConstants._url, SqlConstants._username, SqlConstants._password);
+			Class.forName(PdcaSqlConstants._driver).newInstance();
+			connection = DriverManager.getConnection(PdcaSqlConstants._url, PdcaSqlConstants._username, PdcaSqlConstants._password);
 		} catch (Exception ex) {
 			_log.error("Error Occured While Getting the Connection: - "+ ex);
 		}

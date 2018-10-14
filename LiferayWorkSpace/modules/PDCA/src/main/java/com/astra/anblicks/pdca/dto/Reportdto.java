@@ -6,13 +6,15 @@ public class Reportdto {
 	private long pid;
 	private double value;
 	private String type;
+	private long year;
 	
-	public Reportdto(long cid, long pid, double value, String type) {
+	public Reportdto(long cid, long pid, double value, String type, long year) {
 		super();
 		this.cid = cid;
 		this.pid = pid;
 		this.value = value;
 		this.type = type;
+		this.setYear(year);
 	}
 	
 	
@@ -52,6 +54,18 @@ public class Reportdto {
 	@Override
 	public String toString() {
 		return "Reportdto [cid=" + cid + ", pid=" + pid + ", value=" + value + ", type=" + type + "]";
+	}
+
+
+
+	public long getYear() {
+		return year;
+	}
+
+
+
+	public void setYear(long year) {
+		this.year = year;
 	}
 
 }

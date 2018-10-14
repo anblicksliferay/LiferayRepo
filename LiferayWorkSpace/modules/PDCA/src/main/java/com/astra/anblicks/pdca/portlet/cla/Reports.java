@@ -20,7 +20,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.portlet.Portlet;
 import javax.portlet.PortletException;
@@ -35,6 +37,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.osgi.service.component.annotations.Component;
 
 import com.astra.anblicks.pdca.constants.PDCAPortletKeys;
+import com.astra.anblicks.pdca.dto.ReportForFYDto;
+import com.astra.anblicks.pdca.dto.Reportdto;
 import com.astra.anblicks.pdca.model.tradingProfit;
 import com.astra.anblicks.pdca.service.cla_kpiLocalServiceUtil;
 import com.astra.anblicks.pdca.service.companyLocalServiceUtil;
@@ -42,6 +46,7 @@ import com.astra.anblicks.pdca.service.periodLocalServiceUtil;
 import com.astra.anblicks.pdca.service.tradingProfitLocalServiceUtil;
 import com.astra.anblicks.pdca.services.sql.PdcaMySqlConnection;
 import com.astra.anblicks.pdca.services.sql.PdcaSqlQueries;
+import com.astra.anblicks.pdca.utils.ExcelUtils;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
@@ -90,12 +95,20 @@ import com.liferay.portal.kernel.util.WebKeys;
 public class Reports extends MVCPortlet {
 
 	private static Log logger = LogFactoryUtil.getLog(Reports.class.getName());
+	public static Connection conn = PdcaMySqlConnection.getConnection();
 	
 	@Override
 	public void doView(RenderRequest renderRequest, RenderResponse renderResponse)
 			throws IOException, PortletException {
-		Connection conn = PdcaMySqlConnection.getConnection();
-		PdcaSqlQueries.getkpis(conn);
+		String reportForFullYearData = PdcaSqlQueries.getReportForFullYearData(conn, 2, 2017);
+		
+		logger.info(reportForFullYearData);
+		
+		List<ReportForFYDto> FullYearData = setvaluesForFullYearData(reportForFullYearData);
+		
+		for(ReportForFYDto rfyd : FullYearData) {
+			logger.info(rfyd.toString());
+		}
 		super.doView(renderRequest, renderResponse);
 	}
 	
@@ -160,8 +173,7 @@ public class Reports extends MVCPortlet {
 			case 1:
 				return reportForTPBreakdown(themeDisplay, resourceRequest, rootfolder, fileEntry, file, periodId, year);
 			case 2:
-				reportForFullYear(themeDisplay, resourceRequest, rootfolder, fileEntry, file, year);
-				break;
+				return reportForFullYear(themeDisplay, resourceRequest, rootfolder, fileEntry, file, reportId, year);
 			case 3:
 				break;
 			case 4:
@@ -255,33 +267,126 @@ public class Reports extends MVCPortlet {
 	
 	/**
 	 * Method for Implementation of Report For FullYear
+	 * @param year2 
 	 * @param themeDisplay,resourceRequest,rootfolder,fileEntry,file,year
+	 * @return 
 	 * @throws PortalException
 	 * @return Json String of Download Url and Relevent Report Json Data 
 	 * 
 	 */
-	private void reportForFullYear(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
-			FileEntry fileEntry, File file, long year) {
+	private String reportForFullYear(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
+			FileEntry fileEntry, File file, int reportId, long year) throws PortalException {
 		
 		//TODO Add Headers to Excel File
 				long timeNow = System.currentTimeMillis();
-				int rowIndex = 1;
-				int starIndex = 4;
 				final long latest = timeNow;
 				String title = "Report_FullYear_"+"_"+year+"_"+latest;
 				String description = PDCAPortletKeys.FullYear_Desc;
-				String url = null;
+				String url = null; 
 				
-			
+				String reportForFullYearData = PdcaSqlQueries.getReportForFullYearData(conn, reportId, year);
+				List<ReportForFYDto> FullYearData = setvaluesForFullYearData(reportForFullYearData);
+				
+				for(ReportForFYDto rfyd : FullYearData) {
+					logger.info(rfyd.toString());
+				}
+				
+				
+				ExcelUtils.writeToExcel(file, FullYearData);
+				
+				ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
+				FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
+				url = themeDisplay.getPortalURL() + themeDisplay.getPathContext() +"/documents/" + themeDisplay.getScopeGroupId() + "/" +addFileEntry.getFolderId() + "/" + addFileEntry.getTitle();
+				System.out.println(url);
+				JSONObject reportdata = JSONFactoryUtil.createJSONObject();
+				reportdata.put("URL", url);
+				  //TODO pass the list to json 
+				return reportdata.toString();
+	}	
+	
+	
+	@SuppressWarnings("unchecked")
+	private List<ReportForFYDto> setvaluesForFullYearData(String reportForFullYearData) {
 		
+		List<ReportForFYDto> reportForFYDtoObjects = new ArrayList<ReportForFYDto>();
+		
+		try {
+			JSONObject ReportData = JSONFactoryUtil.createJSONObject(reportForFullYearData);
+			
+			Map<Long, List<Reportdto>> list1 = (Map<Long, List<Reportdto>>) ReportData.get("list1");
+			Map<Long, List<Reportdto>> list2 = (Map<Long, List<Reportdto>>) ReportData.get("list2");
+
+			
+			
+			
+		    for(Map.Entry<Long, List<Reportdto>> entry: list1.entrySet()){
+		    	ReportForFYDto reportForFYDto = new ReportForFYDto();
+		    	
+		    	reportForFYDto.setCompany(companyLocalServiceUtil.getcompany(entry.getKey()).getCompanyName());
+		    	
+		    	double getOl3Ach_CY = 0.00;
+		    	double getOl3Ach_PY = 0.00;
+		    	double getFYAch = 0.00;
+		    	List<Reportdto> reportdtolist = new ArrayList<>(entry.getValue());
+		    	for(Reportdto rd : reportdtolist){
+		    		if(rd.getPid() == 4 && rd.getType().equals("Sum_ClaPoint_PreviousYear")) {
+		    			reportForFYDto.setOl3_Achivement_LastYear(rd.getValue());
+		    			getOl3Ach_PY = rd.getValue();
+		    		}
+		    		else if(rd.getPid() == 3 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
+		    			reportForFYDto.setOlAdj_Achivement_CurrentYear(rd.getValue());
+		    		}
+		    		else if(rd.getPid() == 4 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
+		    			reportForFYDto.setOl3_Achivement_CurrentYear(rd.getValue());
+		    			getOl3Ach_CY = rd.getValue();
+		    		}
+		    		else if(rd.getPid() == 5 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
+		    			reportForFYDto.setFy_Achivement_CurrentYear(rd.getValue());
+		    			getFYAch = rd.getValue();
+		    		}
+		    		
+		    	}
+		    	
+		    	reportForFYDto.setFy__And_ol3_Achivement_CurrentYear(getFYAch - getOl3Ach_CY);
+		    	reportForFYDto.setOl3_Achivement_LastYear_And_CurrentYear(getOl3Ach_CY - getOl3Ach_PY);
+		    	
+		    	
+		    	List<Reportdto> TradeProfitList = list2.get(entry.getKey());
+		    	for(Reportdto Tpl : TradeProfitList) {
+		    		if(Tpl.getPid() == 3) {
+		    			reportForFYDto.setOlAdj_TP_Achivement_CurrentYear(Tpl.getValue());    			
+		    		}
+		    		if(Tpl.getPid() == 4) {
+		    			reportForFYDto.setOl3_TP_Achivement_CurrentYear(Tpl.getValue());	    			
+		    		}
+		    		if(Tpl.getPid() == 5) {
+		    			reportForFYDto.setFy_TP_Achivement_CurrentYear(Tpl.getValue());	
+		    		}
+		    	}
+		    	
+		    	reportForFYDto.setNotes_cla("Notes");
+		    	
+		    	
+		    	reportForFYDtoObjects.add(reportForFYDto);	
+		    	
+		    }
+			
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (PortalException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return reportForFYDtoObjects;
 		
 	}
-		
 
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * Calculating TradingProfitValue and Total OneOff based on TradingProfit Object
 	 * @param TradingProfit Object
