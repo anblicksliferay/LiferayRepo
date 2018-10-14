@@ -37,6 +37,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.osgi.service.component.annotations.Component;
 
 import com.astra.anblicks.pdca.constants.PDCAPortletKeys;
+import com.astra.anblicks.pdca.dto.NamedObject;
 import com.astra.anblicks.pdca.dto.ReportForFYDto;
 import com.astra.anblicks.pdca.dto.Reportdto;
 import com.astra.anblicks.pdca.model.tradingProfit;
@@ -96,21 +97,6 @@ public class Reports extends MVCPortlet {
 
 	private static Log logger = LogFactoryUtil.getLog(Reports.class.getName());
 	public static Connection conn = PdcaMySqlConnection.getConnection();
-	
-	@Override
-	public void doView(RenderRequest renderRequest, RenderResponse renderResponse)
-			throws IOException, PortletException {
-		String reportForFullYearData = PdcaSqlQueries.getReportForFullYearData(conn, 2, 2017);
-		
-		logger.info(reportForFullYearData);
-		
-		List<ReportForFYDto> FullYearData = setvaluesForFullYearData(reportForFullYearData);
-		
-		for(ReportForFYDto rfyd : FullYearData) {
-			logger.info(rfyd.toString());
-		}
-		super.doView(renderRequest, renderResponse);
-	}
 	
 	
 	
@@ -284,12 +270,8 @@ public class Reports extends MVCPortlet {
 				String description = PDCAPortletKeys.FullYear_Desc;
 				String url = null; 
 				
-				String reportForFullYearData = PdcaSqlQueries.getReportForFullYearData(conn, reportId, year);
+				List<NamedObject<Map<Long, List<Reportdto>>>> reportForFullYearData = PdcaSqlQueries.getReportForFullYearData(conn, reportId, year);
 				List<ReportForFYDto> FullYearData = setvaluesForFullYearData(reportForFullYearData);
-				
-				for(ReportForFYDto rfyd : FullYearData) {
-					logger.info(rfyd.toString());
-				}
 				
 				
 				ExcelUtils.writeToExcel(file, FullYearData);
@@ -306,17 +288,14 @@ public class Reports extends MVCPortlet {
 	
 	
 	@SuppressWarnings("unchecked")
-	private List<ReportForFYDto> setvaluesForFullYearData(String reportForFullYearData) {
+	private List<ReportForFYDto> setvaluesForFullYearData(List<NamedObject<Map<Long, List<Reportdto>>>> reportForFullYearData) {
 		
 		List<ReportForFYDto> reportForFYDtoObjects = new ArrayList<ReportForFYDto>();
 		
 		try {
-			JSONObject ReportData = JSONFactoryUtil.createJSONObject(reportForFullYearData);
 			
-			Map<Long, List<Reportdto>> list1 = (Map<Long, List<Reportdto>>) ReportData.get("list1");
-			Map<Long, List<Reportdto>> list2 = (Map<Long, List<Reportdto>>) ReportData.get("list2");
-
-			
+			Map<Long, List<Reportdto>> list1 = reportForFullYearData.get(0).getObject();
+			Map<Long, List<Reportdto>> list2 = reportForFullYearData.get(1).getObject();
 			
 			
 		    for(Map.Entry<Long, List<Reportdto>> entry: list1.entrySet()){

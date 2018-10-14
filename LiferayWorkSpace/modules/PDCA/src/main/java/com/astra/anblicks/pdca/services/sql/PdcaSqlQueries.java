@@ -5,20 +5,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
-import java.util.stream.Stream;
 
+import com.astra.anblicks.pdca.dto.NamedObject;
 import com.astra.anblicks.pdca.dto.Reportdto;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
-import com.liferay.portal.kernel.json.JSONObject;
 
 public class PdcaSqlQueries {
 	
-	public static String getReportForFullYearData(Connection conn,int reportId, long year) {
-		JSONObject reportData = JSONFactoryUtil.createJSONObject();
+	public static List<NamedObject<Map<Long, List<Reportdto>>>> getReportForFullYearData(Connection conn,int reportId, long year) {
+		
+		List<NamedObject<Map<Long, List<Reportdto>>>> MappedObjects = new ArrayList<NamedObject<Map<Long, List<Reportdto>>>>();
+		
 		
         QueryRunner queryRunner = new QueryRunner();
         
@@ -37,20 +38,18 @@ public class PdcaSqlQueries {
                  List<Reportdto> sumOfKpislist_PreviousYear = queryRunner.query(conn, sql2, resultHandler, previousYear,4);
                  List<Reportdto> TradingProfitKpis_CurrentYear = queryRunner.query(conn, sql3, resultHandler,year,3,4,5,1);
                  
-                 
-                 
-                 reportData.put("list1",MergeListstoMap(sumOfKpislist_CurrentYear,sumOfKpislist_PreviousYear));
-                 reportData.put("list2", ListtoMap(TradingProfitKpis_CurrentYear));      
+                 MappedObjects.add(new NamedObject<Map<Long,List<Reportdto>>>("list1", MergeListstoMap(sumOfKpislist_CurrentYear,sumOfKpislist_PreviousYear)));
+                 MappedObjects.add(new NamedObject<Map<Long,List<Reportdto>>>("list2", ListtoMap(TradingProfitKpis_CurrentYear)));    
 
              } 
 			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
-        return reportData.toString();
+        return MappedObjects;
 	}
 	
-	private static Map<Long, ArrayList<Reportdto>> MergeListstoMap(List<Reportdto> list1,
+	private static Map<Long, List<Reportdto>> MergeListstoMap(List<Reportdto> list1,
 			List<Reportdto> list2) {
 		
 		Map<Long, List<Reportdto>> listtoMap1 = ListtoMap(list1);
