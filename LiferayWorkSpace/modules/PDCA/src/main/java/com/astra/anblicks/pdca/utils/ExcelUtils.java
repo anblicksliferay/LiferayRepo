@@ -16,20 +16,21 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelUtils {
 
-	public static <T> void writeToExcel(File file, List<T> data) {
+	public static <T> void writeToExcel(File file, List<T> data,String[] HeaderNames) {
 		OutputStream fos = null;
 		XSSFWorkbook workbook = null;
 		try {
 			
 			workbook = new XSSFWorkbook();
 			Sheet sheet = workbook.createSheet();
+			if(data.size()>0){
 			List<String> fieldNames = getFieldNamesForClass(data.get(0).getClass());
 			int rowCount = 0;
 			int columnCount = 0;
 			Row row = sheet.createRow(rowCount++);
-			for (String fieldName : fieldNames) {
+			for (String headerName : HeaderNames) {
 				Cell cell = row.createCell(columnCount++);
-				cell.setCellValue(fieldName);
+				cell.setCellValue(headerName);
 			}
 			Class<? extends Object> classz = data.get(0).getClass();
 			for (T t : data) {
@@ -56,6 +57,16 @@ public class ExcelUtils {
 						}
 					}
 					columnCount++;
+				}
+			}
+		}
+			else {
+				int rowCount = 0;
+				int columnCount = 0;
+				Row row = sheet.createRow(rowCount++);
+				for (String headerName : HeaderNames) {
+					Cell cell = row.createCell(columnCount++);
+					cell.setCellValue(headerName);
 				}
 			}
 			fos = new FileOutputStream(file);
@@ -95,5 +106,4 @@ public class ExcelUtils {
 			return s;
 		return s.substring(0, 1).toUpperCase() + s.substring(1);
 	}
-
 }

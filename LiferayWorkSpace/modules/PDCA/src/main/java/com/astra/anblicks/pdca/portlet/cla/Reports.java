@@ -29,6 +29,7 @@ import javax.portlet.PortletException;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -210,10 +211,10 @@ public class Reports extends MVCPortlet {
 	private String reportForTPBreakdown(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
 			FileEntry fileEntry, File file, long periodId, long year) throws PortalException {
 		
-		//TODO Add Headers to Excel File
+		
 		long timeNow = System.currentTimeMillis();
 		int rowIndex = 1;
-		int starIndex = 4;
+		int starIndex = 0;
 		final long latest = timeNow;
 		String PeriodName = periodLocalServiceUtil.getperiod(periodId).getPeriodName();
 		String title = "Report_TP_BreakDown_"+PeriodName+"_"+year+"_"+latest;
@@ -225,6 +226,13 @@ public class Reports extends MVCPortlet {
 		
 		XSSFWorkbook workbook = new XSSFWorkbook();
 		XSSFSheet sheet = workbook.createSheet("TP_Breakdown Report");
+
+		int columnCount = 0;
+		Row headerRow = sheet.createRow(starIndex++);
+		for (String headerName : PDCAPortletKeys.TP_BreakDown_HeaderNames) {
+			Cell cell = headerRow.createCell(columnCount++);
+			cell.setCellValue(headerName);
+		}
 		
 		for( tradingProfit tpb : TradeProfitList) {
 			String TradingProfitjsonDataArray = getTradingProfitValueAndTotalOneOff(tpb);
@@ -287,7 +295,7 @@ public class Reports extends MVCPortlet {
 				List<ReportForFYDto> FullYearData = setvaluesForFullYearData(reportForFullYearData);
 				
 				
-				ExcelUtils.writeToExcel(file, FullYearData);
+				ExcelUtils.writeToExcel(file, FullYearData,PDCAPortletKeys.FullYear_HeaderNames);
 				
 				ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
 				FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
@@ -313,7 +321,7 @@ public class Reports extends MVCPortlet {
 		
 		List<ReportForCpDto> CPData = setvaluesForCPData(reportForCPData,year);
 		
-		ExcelUtils.writeToExcel(file, CPData);
+		ExcelUtils.writeToExcel(file, CPData,PDCAPortletKeys.CP_HeaderNames);
 		
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
 		FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
@@ -336,7 +344,7 @@ public class Reports extends MVCPortlet {
 		List<NamedObject<Map<Long, List<Reportdto>>>> reportForEM_OL3 = PdcaSqlQueries.getReportForFullYearData(conn, reportId, year);
 		List<ReportForEM_Ol3> EM_Ol3Data = setvaluesForEM_Ol3(reportForEM_OL3);
 		
-        ExcelUtils.writeToExcel(file, EM_Ol3Data);
+        ExcelUtils.writeToExcel(file, EM_Ol3Data, PDCAPortletKeys.EM_OL3_HeaderNames);
 		
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
 		FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
@@ -360,7 +368,7 @@ public class Reports extends MVCPortlet {
 		List<NamedObject<Map<Long, List<Reportdto>>>> reportforEM_OlAdjData = PdcaSqlQueries.getReportForEM_OlAdj(conn, reportId, year);
 		List<ReportForEM_OlAdj> EM_OlAdjdata = setvaluesForEM_OlAdj(reportforEM_OlAdjData);
 		
-        ExcelUtils.writeToExcel(file, EM_OlAdjdata);
+        ExcelUtils.writeToExcel(file, EM_OlAdjdata, PDCAPortletKeys.EM_OLAdj_HeaderNames);
 		
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
 		FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
@@ -382,9 +390,10 @@ public class Reports extends MVCPortlet {
 		String description = PDCAPortletKeys.PRM_OL3_Desc;
 		String url = null;
 		
-		List<ReportForPRM_Ol3> PRM_OL3data = setvaluesForPRM_OL3(year);
+		Map<Long, List<Reportdto>> reportForOl3Data = PdcaSqlQueries.getReportForCP(conn, reportId, year);
+		List<ReportForPRM_Ol3> PRM_OL3data = setvaluesForPRM_OL3(year,reportForOl3Data);
 		
-        ExcelUtils.writeToExcel(file, PRM_OL3data);
+        ExcelUtils.writeToExcel(file, PRM_OL3data, PDCAPortletKeys.PR_OL3_HeaderNames);
 		
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
 		FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
@@ -399,20 +408,30 @@ public class Reports extends MVCPortlet {
 	
 	
 	private String reportForPRM_OlAdj(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
-			FileEntry fileEntry, File file, int reportId, long year) {
+			FileEntry fileEntry, File file, int reportId, long year) throws PortalException {
 		long timeNow = System.currentTimeMillis();
 		final long latest = timeNow;
 		String title = "Report_PRM_OLAdj"+"_"+year+"_"+latest;
 		String description = PDCAPortletKeys.PRM_OLAdj_Desc;
 		String url = null;
 		
-		setvaluesForPRM_OLAdj(year);
+		Map<Long, List<Reportdto>> reportForOlAdjData = PdcaSqlQueries.getReportForCP(conn, reportId, year);
+		List<ReportForPRM_OlAdj> PRM_OLAdjData = setvaluesForPRM_OLAdj(reportForOlAdjData,year);
 		
-		return null;
+        ExcelUtils.writeToExcel(file, PRM_OLAdjData, PDCAPortletKeys.PR_OLAdj_HeaderNames);
+		
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
+		FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
+		url = themeDisplay.getPortalURL() + themeDisplay.getPathContext() +"/documents/" + themeDisplay.getScopeGroupId() + "/" +addFileEntry.getFolderId() + "/" + addFileEntry.getTitle();
+		System.out.println(url);
+		JSONObject reportdata = JSONFactoryUtil.createJSONObject();
+		reportdata.put("URL", url);
+		  //TODO pass the list to json 
+		return reportdata.toString();
 	}
 	
 
-	private void setvaluesForPRM_OLAdj(long year) {
+	private List<ReportForPRM_OlAdj> setvaluesForPRM_OLAdj(Map<Long, List<Reportdto>> reportForOlAdjData, long year) {
 		
 		List<ReportForPRM_OlAdj> reportForPRM_OlAdjObjects = new ArrayList<ReportForPRM_OlAdj>();
 		
@@ -420,9 +439,29 @@ public class Reports extends MVCPortlet {
 			List<tradingProfit> tradingProfitlList = getTradingProfitByPeriod_Year(3,year);
 			
 			 for(tradingProfit tpd : tradingProfitlList ) {
+				 List<kpi> kpi = getTargetByCompanyId_Year(tpd.getCompanyId(),year);
+				 double OL_OlAdj_CY = getOLBy_KpiId_Year(kpi.get(0).getKpiId(),3);
+				 
+				 ReportForPRM_OlAdj reportForPRM_OlAdj = new ReportForPRM_OlAdj();
+				 
+				 reportForPRM_OlAdj.setCompany(companyLocalServiceUtil.getcompany(tpd.getCompanyId()).getCompanyName());
+				 
+				 if(reportForOlAdjData.get(tpd.getCompanyId())!= null) {
+					 reportForPRM_OlAdj.setFY_Audited_LastYear(reportForOlAdjData.get(tpd.getCompanyId()).get(0).getValue());
+				  }
+				  else {
+					  reportForPRM_OlAdj.setFY_Audited_LastYear(0.00);
+				  }
+				 
+				 reportForPRM_OlAdj.setTarget_CurrentYear(kpi.get(0).getTarget());
+				 reportForPRM_OlAdj.setOlAdj_CurrentYear(OL_OlAdj_CY);
 				 
 				 
+				 reportForPRM_OlAdj.setAchivement_Ol(OL_OlAdj_CY/kpi.get(0).getTarget());
 				 
+				 
+				 reportForPRM_OlAdjObjects.add(reportForPRM_OlAdj);
+
 			 }
 			
 			
@@ -430,13 +469,15 @@ public class Reports extends MVCPortlet {
 		} catch (Exception e) {
 		}
 		
+		return reportForPRM_OlAdjObjects;
+		
 	}
 
 
 
 
 
-	private List<ReportForPRM_Ol3> setvaluesForPRM_OL3(long year) {
+	private List<ReportForPRM_Ol3> setvaluesForPRM_OL3(long year, Map<Long, List<Reportdto>> reportForOl3Data) {
 		
 
 		List<ReportForPRM_Ol3> reportForPRM_Ol3Objects = new ArrayList<ReportForPRM_Ol3>();
@@ -447,14 +488,19 @@ public class Reports extends MVCPortlet {
 			 for(tradingProfit tpd : tradingProfitlList ) {
 				  String totalOneOff = getTradingProfitValueAndTotalOneOff(tpd);
 				  List<kpi> kpi = getTargetByCompanyId_Year(tpd.getCompanyId(),year);
-				  double fullyear_Audited_Py = getFullyear_Audited_Py(kpi.get(0).getKpiId(),year-1l);
-				  double claAchivement_OLAdj = getClaAchivement_OLAdj(kpi.get(0).getKpiId(),3);
+				 
+				  double claAchivement_OLAdj = getClaAchivement_KpiId_Period(kpi.get(0).getKpiId(),3);
 				  
 				  ReportForPRM_Ol3 reportForPRM_Ol3 = new ReportForPRM_Ol3();
 				  
 				  reportForPRM_Ol3.setCompany(companyLocalServiceUtil.getcompany(tpd.getCompanyId()).getCompanyName());
 				  
-				  reportForPRM_Ol3.setFY_Audited_LastYear(fullyear_Audited_Py);
+				  if(reportForOl3Data.get(tpd.getCompanyId())!= null) {
+					  reportForPRM_Ol3.setFY_Audited_LastYear(reportForOl3Data.get(tpd.getCompanyId()).get(0).getValue());
+				  }
+				  else {
+					  reportForPRM_Ol3.setFY_Audited_LastYear(0.00);
+				  }
 				  
 				  reportForPRM_Ol3.setTP_TargetCLA_CurrentYear(kpi.get(0).getTarget());
 				  reportForPRM_Ol3.setTP_CPOl3_CurrentYear(tpd.getNpat() - tpd.getNetForex());
@@ -661,6 +707,7 @@ public class Reports extends MVCPortlet {
 			    	}
 			    	
 			    	reportForEM_Ol3.setNotes_cla("Notes");
+			    	reportForEM_Ol3.setNotes_TP("Notes TP");
 			    	
 			    	
 			    	reportForFYDtoObjects.add(reportForEM_Ol3);	
@@ -751,7 +798,7 @@ public class Reports extends MVCPortlet {
 	}
 	
 	
-    private double getClaAchivement_OLAdj(long kpiId,long periodId) {
+    private double getClaAchivement_KpiId_Period(long kpiId,long periodId) {
     	
     	DynamicQuery dynamicQueryForClaAchivement = cla_kpiLocalServiceUtil.dynamicQuery();
     	dynamicQueryForClaAchivement.add(PropertyFactoryUtil.forName("kpiId").eq(kpiId) );
@@ -762,7 +809,7 @@ public class Reports extends MVCPortlet {
 	}
     
     
-    private double getFullyear_Audited_Py(long kpiId, long year) {
+    private double getOLBy_KpiId_Year(long kpiId, long year) {
 
     	DynamicQuery dynamicQueryForClaAchivement = cla_kpiLocalServiceUtil.dynamicQuery();
     	dynamicQueryForClaAchivement.add(PropertyFactoryUtil.forName("kpiId").eq(kpiId) );
