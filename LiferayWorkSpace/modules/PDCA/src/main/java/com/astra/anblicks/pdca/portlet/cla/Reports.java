@@ -37,8 +37,13 @@ import org.osgi.service.component.annotations.Component;
 import com.astra.anblicks.pdca.constants.PDCAPortletKeys;
 import com.astra.anblicks.pdca.dto.NamedObject;
 import com.astra.anblicks.pdca.dto.ReportForCpDto;
+import com.astra.anblicks.pdca.dto.ReportForEM_Ol3;
+import com.astra.anblicks.pdca.dto.ReportForEM_OlAdj;
 import com.astra.anblicks.pdca.dto.ReportForFYDto;
+import com.astra.anblicks.pdca.dto.ReportForPRM_Ol3;
+import com.astra.anblicks.pdca.dto.ReportForPRM_OlAdj;
 import com.astra.anblicks.pdca.dto.Reportdto;
+import com.astra.anblicks.pdca.model.cla_kpi;
 import com.astra.anblicks.pdca.model.kpi;
 import com.astra.anblicks.pdca.model.tradingProfit;
 import com.astra.anblicks.pdca.service.cla_kpiLocalServiceUtil;
@@ -117,7 +122,6 @@ public class Reports extends MVCPortlet {
 		 try {
 			writeJSON(resourceRequest, resourceResponse,JSONFactoryUtil.createJSONObject(reportData) );
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
         
@@ -164,9 +168,20 @@ public class Reports extends MVCPortlet {
 			case 3:
 				return reportForCp(themeDisplay, resourceRequest, rootfolder, fileEntry, file, reportId, year);
 			case 4:
-				break;
+				if(periodId == 3) {
+					return reportForEM_OlAdj(themeDisplay, resourceRequest, rootfolder, fileEntry, file, reportId, year);
+				}
+				else if(periodId == 4) {
+					return reportForEM_Ol3(themeDisplay, resourceRequest, rootfolder, fileEntry, file, reportId, year);
+				}
 			case 5:
-				break;
+				if(periodId == 3) {
+					return reportForPRM_OlAdj(themeDisplay, resourceRequest, rootfolder, fileEntry, file, reportId, year);
+				}
+				else if(periodId == 4) {
+					return reportForPRM_Ol3(themeDisplay, resourceRequest, rootfolder, fileEntry, file, reportId, year);
+				}
+				
 
 			default:
 				break;
@@ -177,6 +192,12 @@ public class Reports extends MVCPortlet {
 		return "";
 
 	}
+
+
+	
+
+
+
 
 
 	/**
@@ -200,18 +221,10 @@ public class Reports extends MVCPortlet {
 		String url = null;
 		
 		
-		
-		DynamicQuery dynamicQueryForTradeProfit = tradingProfitLocalServiceUtil.dynamicQuery();
-		dynamicQueryForTradeProfit.add(PropertyFactoryUtil.forName("periodId").eq(periodId));
-		Criterion reqcriterion = null;
-		reqcriterion = RestrictionsFactoryUtil.eq("year", year);
-		dynamicQueryForTradeProfit.add(reqcriterion);
-		List<tradingProfit> TradeProfitList = cla_kpiLocalServiceUtil.dynamicQuery(dynamicQueryForTradeProfit);
+		List<tradingProfit> TradeProfitList = getTradingProfitByPeriod_Year(periodId, year);
 		
 		XSSFWorkbook workbook = new XSSFWorkbook();
 		XSSFSheet sheet = workbook.createSheet("TP_Breakdown Report");
-		
-		//TODO implement the Lambda Expression forEach loop
 		
 		for( tradingProfit tpb : TradeProfitList) {
 			String TradingProfitjsonDataArray = getTradingProfitValueAndTotalOneOff(tpb);
@@ -237,6 +250,7 @@ public class Reports extends MVCPortlet {
 			outputStream = new FileOutputStream(file);
 			workbook.write(outputStream);
 			workbook.close();
+			outputStream.close();
 		} catch (IOException e1 ) {
 			e1.printStackTrace();
 		}
@@ -311,46 +325,213 @@ public class Reports extends MVCPortlet {
 		return reportdata.toString();
 	}
 	
+	private String reportForEM_Ol3(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
+			FileEntry fileEntry, File file, int reportId, long year) throws PortalException {
+		long timeNow = System.currentTimeMillis();
+		final long latest = timeNow;
+		String title = "Report_EM_OL3"+"_"+year+"_"+latest;
+		String description = PDCAPortletKeys.EM_OL3_Desc;
+		String url = null;
+		
+		List<NamedObject<Map<Long, List<Reportdto>>>> reportForEM_OL3 = PdcaSqlQueries.getReportForFullYearData(conn, reportId, year);
+		List<ReportForEM_Ol3> EM_Ol3Data = setvaluesForEM_Ol3(reportForEM_OL3);
+		
+        ExcelUtils.writeToExcel(file, EM_Ol3Data);
+		
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
+		FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
+		url = themeDisplay.getPortalURL() + themeDisplay.getPathContext() +"/documents/" + themeDisplay.getScopeGroupId() + "/" +addFileEntry.getFolderId() + "/" + addFileEntry.getTitle();
+		System.out.println(url);
+		JSONObject reportdata = JSONFactoryUtil.createJSONObject();
+		reportdata.put("URL", url);
+		  //TODO pass the list to json 
+		return reportdata.toString();
+		
+	}
+
+	 private String reportForEM_OlAdj(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
+			FileEntry fileEntry, File file, int reportId, long year) throws PortalException {	
+		long timeNow = System.currentTimeMillis();
+		final long latest = timeNow;
+		String title = "Report_EM_OLAdj"+"_"+year+"_"+latest;
+		String description = PDCAPortletKeys.EM_OLAdj_Desc;
+		String url = null;
+		
+		List<NamedObject<Map<Long, List<Reportdto>>>> reportforEM_OlAdjData = PdcaSqlQueries.getReportForEM_OlAdj(conn, reportId, year);
+		List<ReportForEM_OlAdj> EM_OlAdjdata = setvaluesForEM_OlAdj(reportforEM_OlAdjData);
+		
+        ExcelUtils.writeToExcel(file, EM_OlAdjdata);
+		
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
+		FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
+		url = themeDisplay.getPortalURL() + themeDisplay.getPathContext() +"/documents/" + themeDisplay.getScopeGroupId() + "/" +addFileEntry.getFolderId() + "/" + addFileEntry.getTitle();
+		System.out.println(url);
+		JSONObject reportdata = JSONFactoryUtil.createJSONObject();
+		reportdata.put("URL", url);
+		  //TODO pass the list to json 
+		return reportdata.toString();
+		
+	}
+
+
+	private String reportForPRM_Ol3(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
+			FileEntry fileEntry, File file, int reportId, long year) throws PortalException {
+		long timeNow = System.currentTimeMillis();
+		final long latest = timeNow;
+		String title = "Report_PRM_OL3"+"_"+year+"_"+latest;
+		String description = PDCAPortletKeys.PRM_OL3_Desc;
+		String url = null;
+		
+		List<ReportForPRM_Ol3> PRM_OL3data = setvaluesForPRM_OL3(year);
+		
+        ExcelUtils.writeToExcel(file, PRM_OL3data);
+		
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(DLFileEntry.class.getName(),resourceRequest);
+		FileEntry addFileEntry = DLAppServiceUtil.addFileEntry(themeDisplay.getScopeGroupId(),rootfolder.getFolderId(), fileEntry.getFileName(),fileEntry.getMimeType(), title, description, "", file, serviceContext);
+		url = themeDisplay.getPortalURL() + themeDisplay.getPathContext() +"/documents/" + themeDisplay.getScopeGroupId() + "/" +addFileEntry.getFolderId() + "/" + addFileEntry.getTitle();
+		System.out.println(url);
+		JSONObject reportdata = JSONFactoryUtil.createJSONObject();
+		reportdata.put("URL", url);
+		  //TODO pass the list to json 
+		return reportdata.toString();
+	}
 	
+	
+	
+	private String reportForPRM_OlAdj(ThemeDisplay themeDisplay, ResourceRequest resourceRequest, Folder rootfolder,
+			FileEntry fileEntry, File file, int reportId, long year) {
+		long timeNow = System.currentTimeMillis();
+		final long latest = timeNow;
+		String title = "Report_PRM_OLAdj"+"_"+year+"_"+latest;
+		String description = PDCAPortletKeys.PRM_OLAdj_Desc;
+		String url = null;
+		
+		setvaluesForPRM_OLAdj(year);
+		
+		return null;
+	}
+	
+
+	private void setvaluesForPRM_OLAdj(long year) {
+		
+		List<ReportForPRM_OlAdj> reportForPRM_OlAdjObjects = new ArrayList<ReportForPRM_OlAdj>();
+		
+		try {
+			List<tradingProfit> tradingProfitlList = getTradingProfitByPeriod_Year(3,year);
+			
+			 for(tradingProfit tpd : tradingProfitlList ) {
+				 
+				 
+				 
+			 }
+			
+			
+			
+		} catch (Exception e) {
+		}
+		
+	}
+
+
+
+
+
+	private List<ReportForPRM_Ol3> setvaluesForPRM_OL3(long year) {
+		
+
+		List<ReportForPRM_Ol3> reportForPRM_Ol3Objects = new ArrayList<ReportForPRM_Ol3>();
+		
+		try {
+			List<tradingProfit> tradingProfitlList = getTradingProfitByPeriod_Year(4,year);
+			
+			 for(tradingProfit tpd : tradingProfitlList ) {
+				  String totalOneOff = getTradingProfitValueAndTotalOneOff(tpd);
+				  List<kpi> kpi = getTargetByCompanyId_Year(tpd.getCompanyId(),year);
+				  double fullyear_Audited_Py = getFullyear_Audited_Py(kpi.get(0).getKpiId(),year-1l);
+				  double claAchivement_OLAdj = getClaAchivement_OLAdj(kpi.get(0).getKpiId(),3);
+				  
+				  ReportForPRM_Ol3 reportForPRM_Ol3 = new ReportForPRM_Ol3();
+				  
+				  reportForPRM_Ol3.setCompany(companyLocalServiceUtil.getcompany(tpd.getCompanyId()).getCompanyName());
+				  
+				  reportForPRM_Ol3.setFY_Audited_LastYear(fullyear_Audited_Py);
+				  
+				  reportForPRM_Ol3.setTP_TargetCLA_CurrentYear(kpi.get(0).getTarget());
+				  reportForPRM_Ol3.setTP_CPOl3_CurrentYear(tpd.getNpat() - tpd.getNetForex());
+				  reportForPRM_Ol3.setOneOff_Ol3_CurrentYear(JSONFactoryUtil.createJSONObject(totalOneOff).getDouble("Total"));
+				  
+				  reportForPRM_Ol3.setTP_CLAOlAdj_CurrentYear(claAchivement_OLAdj);
+				  reportForPRM_Ol3.setAchivement_OlAdj_CurrentYear(claAchivement_OLAdj / JSONFactoryUtil.createJSONObject(totalOneOff).getDouble("Total"));
+				  
+				  reportForPRM_Ol3.setTP_CLAOl3_CurrentYear(JSONFactoryUtil.createJSONObject(totalOneOff).getDouble("TradingProfit"));
+				  reportForPRM_Ol3.setAchivement_Ol3_CurrentYear(JSONFactoryUtil.createJSONObject(totalOneOff).getDouble("TradingProfit")/kpi.get(0).getTarget());
+				  reportForPRM_Ol3.setNotes_Target("Notes");
+				  
+				  
+				  reportForPRM_Ol3Objects.add(reportForPRM_Ol3);
+				  
+			 }
+			
+			
+			 
+			
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+			
+			  
+		return reportForPRM_Ol3Objects;
+		
+		
+	}
+
+
+
+
+	
+
+
+
+
+
 	private List<ReportForCpDto> setvaluesForCPData(Map<Long, List<Reportdto>> reportForCPData, long year) {
 		
 		List<ReportForCpDto> reportForCPDtoObjects = new ArrayList<ReportForCpDto>();
 		
 		try {
 			
-			  for(Map.Entry<Long, List<Reportdto>> entry: reportForCPData.entrySet()){
-				  List<tradingProfit> tpd = getTradingProfitByCompanyId_Period_Year(entry.getKey(),3,year);
-				  String totalOneOff = getTradingProfitValueAndTotalOneOff(tpd.get(0));
-				  
-				  List<kpi> kpi = getTargetByCompanyId_Year(entry.getKey(),year);
-				  
+			  List<tradingProfit> tradingProfitlList = getTradingProfitByPeriod_Year(4,year);
+			  
+			  for(tradingProfit tpd : tradingProfitlList ) {
+				  String totalOneOff = getTradingProfitValueAndTotalOneOff(tpd);
+				  List<kpi> kpi = getTargetByCompanyId_Year(tpd.getCompanyId(),year);
 				  
 				  
 				  ReportForCpDto reportForCpDto = new ReportForCpDto();
 				  
-				  reportForCpDto.setCompany(companyLocalServiceUtil.getcompany(entry.getKey()).getCompanyName());
+				  reportForCpDto.setCompany(companyLocalServiceUtil.getcompany(tpd.getCompanyId()).getCompanyName());
 				  
-				  reportForCpDto.setFY_Audited_LastYear(entry.getValue().get(0).getValue());
+				  if(reportForCPData.get(tpd.getCompanyId())!= null) {
+					  reportForCpDto.setFY_Audited_LastYear(reportForCPData.get(tpd.getCompanyId()).get(0).getValue());
+				  }
+				  else {
+					  reportForCpDto.setFY_Audited_LastYear(0.00);
+				  }
 				  
 				  reportForCpDto.setTP_TargetCLA_CurrentYear(kpi.get(0).getTarget());
-				  
-				  reportForCpDto.setTP_CPOl3_CurrentYear(tpd.get(0).getNpat() - tpd.get(0).getNetForex());
-				  
+				  reportForCpDto.setTP_CPOl3_CurrentYear(tpd.getNpat() - tpd.getNetForex());
 				  reportForCpDto.setOneOff_Ol3_CurrentYear(JSONFactoryUtil.createJSONObject(totalOneOff).getDouble("Total"));
-				  
 				  reportForCpDto.setTP_CLAOl3_CurrentYear(JSONFactoryUtil.createJSONObject(totalOneOff).getDouble("TradingProfit"));
-				  
 				  reportForCpDto.setAchivement_Ol3_CurrentYear(JSONFactoryUtil.createJSONObject(totalOneOff).getDouble("TradingProfit")/kpi.get(0).getTarget());
-				  
-				  reportForCpDto.setNotes_Target("sample");
-				  
+				  reportForCpDto.setNotes_Target("Notes");
 				  
 				  reportForCPDtoObjects.add(reportForCpDto);
 				  
 			  }
 			
 		} catch (Exception e) {
-			// TODO: handle exception
+			
 		}
 		
 		return reportForCPDtoObjects;
@@ -358,78 +539,70 @@ public class Reports extends MVCPortlet {
 		
 	}
 
-
-
-
-
+	
 	private List<ReportForFYDto> setvaluesForFullYearData(List<NamedObject<Map<Long, List<Reportdto>>>> reportForFullYearData) {
 		
 		List<ReportForFYDto> reportForFYDtoObjects = new ArrayList<ReportForFYDto>();
 		
-		try {
+		 try {
+			 Map<Long, List<Reportdto>> list1 = reportForFullYearData.get(0).getObject();
+				Map<Long, List<Reportdto>> list2 = reportForFullYearData.get(1).getObject();
+				
+				
+			    for(Map.Entry<Long, List<Reportdto>> entry: list1.entrySet()){
+			    	ReportForFYDto reportForFYDto = new ReportForFYDto();
+			    	
+			    	reportForFYDto.setCompany(companyLocalServiceUtil.getcompany(entry.getKey()).getCompanyName());
+			    	
+			    	double getOl3Ach_CY = 0.00;
+			    	double getOl3Ach_PY = 0.00;
+			    	double getFYAch = 0.00;
+			    	List<Reportdto> reportdtolist = new ArrayList<>(entry.getValue());
+			    	for(Reportdto rd : reportdtolist){
+			    		if(rd.getPid() == 4 && rd.getType().equals("Sum_ClaPoint_PreviousYear")) {
+			    			reportForFYDto.setOl3_Achivement_LastYear(rd.getValue());
+			    			getOl3Ach_PY = rd.getValue();
+			    		}
+			    		else if(rd.getPid() == 3 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
+			    			reportForFYDto.setOlAdj_Achivement_CurrentYear(rd.getValue());
+			    		}
+			    		else if(rd.getPid() == 4 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
+			    			reportForFYDto.setOl3_Achivement_CurrentYear(rd.getValue());
+			    			getOl3Ach_CY = rd.getValue();
+			    		}
+			    		else if(rd.getPid() == 5 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
+			    			reportForFYDto.setFy_Achivement_CurrentYear(rd.getValue());
+			    			getFYAch = rd.getValue();
+			    		}
+			    		
+			    	}
+			    	
+			    	reportForFYDto.setFy__And_ol3_Achivement_CurrentYear(getFYAch - getOl3Ach_CY);
+			    	reportForFYDto.setOl3_Achivement_LastYear_And_CurrentYear(getOl3Ach_CY - getOl3Ach_PY);
+			    	
+			    	
+			    	List<Reportdto> TradeProfitList = list2.get(entry.getKey());
+			    	for(Reportdto Tpl : TradeProfitList) {
+			    		if(Tpl.getPid() == 3) {
+			    			reportForFYDto.setOlAdj_TP_Achivement_CurrentYear(Tpl.getValue());    			
+			    		}
+			    		if(Tpl.getPid() == 4) {
+			    			reportForFYDto.setOl3_TP_Achivement_CurrentYear(Tpl.getValue());	    			
+			    		}
+			    		if(Tpl.getPid() == 5) {
+			    			reportForFYDto.setFy_TP_Achivement_CurrentYear(Tpl.getValue());	
+			    		}
+			    	}
+			    	
+			    	reportForFYDto.setNotes_cla("Notes");
+			    	
+			    	
+			    	reportForFYDtoObjects.add(reportForFYDto);	
+			    	
+			    }
 			
-			Map<Long, List<Reportdto>> list1 = reportForFullYearData.get(0).getObject();
-			Map<Long, List<Reportdto>> list2 = reportForFullYearData.get(1).getObject();
-			
-			
-		    for(Map.Entry<Long, List<Reportdto>> entry: list1.entrySet()){
-		    	ReportForFYDto reportForFYDto = new ReportForFYDto();
-		    	
-		    	reportForFYDto.setCompany(companyLocalServiceUtil.getcompany(entry.getKey()).getCompanyName());
-		    	
-		    	double getOl3Ach_CY = 0.00;
-		    	double getOl3Ach_PY = 0.00;
-		    	double getFYAch = 0.00;
-		    	List<Reportdto> reportdtolist = new ArrayList<>(entry.getValue());
-		    	for(Reportdto rd : reportdtolist){
-		    		if(rd.getPid() == 4 && rd.getType().equals("Sum_ClaPoint_PreviousYear")) {
-		    			reportForFYDto.setOl3_Achivement_LastYear(rd.getValue());
-		    			getOl3Ach_PY = rd.getValue();
-		    		}
-		    		else if(rd.getPid() == 3 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
-		    			reportForFYDto.setOlAdj_Achivement_CurrentYear(rd.getValue());
-		    		}
-		    		else if(rd.getPid() == 4 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
-		    			reportForFYDto.setOl3_Achivement_CurrentYear(rd.getValue());
-		    			getOl3Ach_CY = rd.getValue();
-		    		}
-		    		else if(rd.getPid() == 5 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
-		    			reportForFYDto.setFy_Achivement_CurrentYear(rd.getValue());
-		    			getFYAch = rd.getValue();
-		    		}
-		    		
-		    	}
-		    	
-		    	reportForFYDto.setFy__And_ol3_Achivement_CurrentYear(getFYAch - getOl3Ach_CY);
-		    	reportForFYDto.setOl3_Achivement_LastYear_And_CurrentYear(getOl3Ach_CY - getOl3Ach_PY);
-		    	
-		    	
-		    	List<Reportdto> TradeProfitList = list2.get(entry.getKey());
-		    	for(Reportdto Tpl : TradeProfitList) {
-		    		if(Tpl.getPid() == 3) {
-		    			reportForFYDto.setOlAdj_TP_Achivement_CurrentYear(Tpl.getValue());    			
-		    		}
-		    		if(Tpl.getPid() == 4) {
-		    			reportForFYDto.setOl3_TP_Achivement_CurrentYear(Tpl.getValue());	    			
-		    		}
-		    		if(Tpl.getPid() == 5) {
-		    			reportForFYDto.setFy_TP_Achivement_CurrentYear(Tpl.getValue());	
-		    		}
-		    	}
-		    	
-		    	reportForFYDto.setNotes_cla("Notes");
-		    	
-		    	
-		    	reportForFYDtoObjects.add(reportForFYDto);	
-		    	
-		    }
-			
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (PortalException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (Exception e) {
+		
 		}
 		
 		return reportForFYDtoObjects;
@@ -437,14 +610,133 @@ public class Reports extends MVCPortlet {
 	}
 	
 	
-	private List<tradingProfit> getTradingProfitByCompanyId_Period_Year(long companyId,long periodId,long year) {
+	private List<ReportForEM_Ol3> setvaluesForEM_Ol3(List<NamedObject<Map<Long, List<Reportdto>>>> EM_OL3Data) {
+		
+
+		
+		List<ReportForEM_Ol3> reportForFYDtoObjects = new ArrayList<ReportForEM_Ol3>();
+		
+		 try {
+			 Map<Long, List<Reportdto>> list1 = EM_OL3Data.get(0).getObject();
+				Map<Long, List<Reportdto>> list2 = EM_OL3Data.get(1).getObject();
+				
+				
+			    for(Map.Entry<Long, List<Reportdto>> entry: list1.entrySet()){
+			    	ReportForEM_Ol3 reportForEM_Ol3 = new ReportForEM_Ol3();
+			    	
+			    	reportForEM_Ol3.setCompany(companyLocalServiceUtil.getcompany(entry.getKey()).getCompanyName());
+			    	
+			    	double getOl3Ach_CY = 0.00;
+			    	double getOl3Ach_PY = 0.00;
+			    	double getOlAdj_CY = 0.00;
+			    	List<Reportdto> reportdtolist = new ArrayList<>(entry.getValue());
+			    	for(Reportdto rd : reportdtolist){
+			    		if(rd.getPid() == 4 && rd.getType().equals("Sum_ClaPoint_PreviousYear")) {
+			    			reportForEM_Ol3.setOl3_Achivement_LastYear(rd.getValue());
+			    			getOl3Ach_PY = rd.getValue();
+			    		}
+			    		else if(rd.getPid() == 3 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
+			    			reportForEM_Ol3.setOlAdj_Achivement_CurrentYear(rd.getValue());
+			    			getOlAdj_CY = rd.getValue();
+			    		}
+			    		else if(rd.getPid() == 4 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
+			    			reportForEM_Ol3.setOl3_Achivement_CurrentYear(rd.getValue());
+			    			getOl3Ach_CY = rd.getValue();
+			    		}
+			    		
+			    	}
+			    	
+			    	reportForEM_Ol3.setOl3__And_olAdj_Achivement_CurrentYear(getOl3Ach_CY - getOlAdj_CY);
+			    	reportForEM_Ol3.setOl3_Achivement_LastYear_And_CurrentYear(getOl3Ach_CY - getOl3Ach_PY);
+			    	
+			    	
+			    	List<Reportdto> TradeProfitList = list2.get(entry.getKey());
+			    	for(Reportdto Tpl : TradeProfitList) {
+			    		if(Tpl.getPid() == 3) {
+			    			reportForEM_Ol3.setOlAdj_TP_Achivement_CurrentYear(Tpl.getValue());    			
+			    		}
+			    		else if(Tpl.getPid() == 4) {
+			    			reportForEM_Ol3.setOl3_TP_Achivement_CurrentYear(Tpl.getValue());	    			
+			    		}
+			    	}
+			    	
+			    	reportForEM_Ol3.setNotes_cla("Notes");
+			    	
+			    	
+			    	reportForFYDtoObjects.add(reportForEM_Ol3);	
+			    	
+			    }
+			
+		} catch (Exception e) {
+		
+		}
+		
+		return reportForFYDtoObjects;
+		
+	}
+	
+	
+	private List<ReportForEM_OlAdj> setvaluesForEM_OlAdj(List<NamedObject<Map<Long, List<Reportdto>>>> EM_OlAdjData) {
+		
+		List<ReportForEM_OlAdj> reportForEM_OLAdjObjects = new ArrayList<ReportForEM_OlAdj>();
+		
+		 try {
+			 Map<Long, List<Reportdto>> list1 = EM_OlAdjData.get(0).getObject();
+				Map<Long, List<Reportdto>> list2 = EM_OlAdjData.get(1).getObject();
+				
+				
+			    for(Map.Entry<Long, List<Reportdto>> entry: list1.entrySet()){
+			    	ReportForEM_OlAdj reportForEM_OlAdj = new ReportForEM_OlAdj();
+			    	
+			    	reportForEM_OlAdj.setCompany(companyLocalServiceUtil.getcompany(entry.getKey()).getCompanyName());
+			    	
+			    	double getOlAdj_PY = 0.00;
+			    	double getOlAdj_CY = 0.00;
+			    	List<Reportdto> reportdtolist = new ArrayList<>(entry.getValue());
+			    	for(Reportdto rd : reportdtolist){
+			    		if(rd.getPid() == 3 && rd.getType().equals("Sum_ClaPoint_PreviousYear")) {
+			    			reportForEM_OlAdj.setOlAdj_LastYear(rd.getValue());
+			    			getOlAdj_PY = rd.getValue();
+			    		}
+			    		else if(rd.getPid() == 4 && rd.getType().equals("Sum_ClaPoint_CurrentYear")) {
+			    			reportForEM_OlAdj.setOlAdj_CurrentYear(rd.getValue());
+			    			getOlAdj_CY = rd.getValue();
+			    		}
+			    		
+			    	}
+			    	
+			    	reportForEM_OlAdj.setOlAdj_LY_And_CY(getOlAdj_CY - getOlAdj_PY);
+			    	
+			    	
+			    	List<Reportdto> TradeProfitList = list2.get(entry.getKey());
+			    	for(Reportdto Tpl : TradeProfitList) {
+			    		if(Tpl.getPid() == 3) {
+			    			reportForEM_OlAdj.setTP_olAdj_CurrentYear(Tpl.getValue());   			
+			    		}
+			    	}
+			    	
+			    	reportForEM_OlAdj.setNotes_CLA("Notes For CLA");
+			    	reportForEM_OlAdj.setNotes_TP("Notes For TP");
+			    	
+			    	
+			    	reportForEM_OLAdjObjects.add(reportForEM_OlAdj);	
+			    	
+			    }
+			
+		} catch (Exception e) {
+		
+		}
+		
+		return reportForEM_OLAdjObjects;
+	}
+	
+	
+	private List<tradingProfit> getTradingProfitByPeriod_Year(long periodId,long year) {
 		
 		DynamicQuery dynamicQueryForTradingProfit = tradingProfitLocalServiceUtil.dynamicQuery();
-		dynamicQueryForTradingProfit.add(PropertyFactoryUtil.forName("companyId").eq(companyId) );
-		Criterion reqcriterion = RestrictionsFactoryUtil.eq("periodId",periodId);
-		Criterion reqcriterion2 = RestrictionsFactoryUtil.eq("year",year);
+		dynamicQueryForTradingProfit.add(PropertyFactoryUtil.forName("periodId").eq(periodId) );
+		Criterion reqcriterion = RestrictionsFactoryUtil.eq("year",year);
 		dynamicQueryForTradingProfit.add(reqcriterion);
-		dynamicQueryForTradingProfit.add(reqcriterion2);
 		return tradingProfitLocalServiceUtil.dynamicQuery(dynamicQueryForTradingProfit);
 		
 	}
@@ -457,6 +749,30 @@ public class Reports extends MVCPortlet {
 		dynamicQueryForTarget.add(reqcriterion);
 		return tradingProfitLocalServiceUtil.dynamicQuery(dynamicQueryForTarget);
 	}
+	
+	
+    private double getClaAchivement_OLAdj(long kpiId,long periodId) {
+    	
+    	DynamicQuery dynamicQueryForClaAchivement = cla_kpiLocalServiceUtil.dynamicQuery();
+    	dynamicQueryForClaAchivement.add(PropertyFactoryUtil.forName("kpiId").eq(kpiId) );
+		Criterion reqcriterion = RestrictionsFactoryUtil.eq("periodId",periodId);
+		dynamicQueryForClaAchivement.add(reqcriterion);
+		List<cla_kpi> dynamicQuery = cla_kpiLocalServiceUtil.dynamicQuery(dynamicQueryForClaAchivement);
+		return dynamicQuery.get(0).getAchivement();
+	}
+    
+    
+    private double getFullyear_Audited_Py(long kpiId, long year) {
+
+    	DynamicQuery dynamicQueryForClaAchivement = cla_kpiLocalServiceUtil.dynamicQuery();
+    	dynamicQueryForClaAchivement.add(PropertyFactoryUtil.forName("kpiId").eq(kpiId) );
+		Criterion reqcriterion = RestrictionsFactoryUtil.eq("year",year);
+		dynamicQueryForClaAchivement.add(reqcriterion);
+		List<cla_kpi> dynamicQuery = cla_kpiLocalServiceUtil.dynamicQuery(dynamicQueryForClaAchivement);
+		return dynamicQuery.get(0).getOl();
+		
+	}
+
 	
 	
 	
